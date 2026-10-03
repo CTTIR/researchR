@@ -1,0 +1,11 @@
+^\.github$
+^README\.Rmd$
+^LICENSE\.md$
+^dev$
+^\.DS_Store$
+^\.idea$
+^\.vscode$
+^doc$
+^Meta$
+^.*\.Rproj$
+^\.Rproj\.user$

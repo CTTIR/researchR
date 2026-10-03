@@ -1,0 +1,185 @@
+# researchR
+
+An R client for **researchd**, the
+self-hosted literature and signal surveillance server it is built for.
+
+`researchd` watches PubMed, Europe PMC, OpenAlex, Crossref, Semantic Scholar,
+ClinicalTrials.gov and the preprint servers on a schedule; deduplicates across
+them; classifies every hit by study type; and tracks a parallel stream of
+non-publication *signals* — trial registrations and results postings,
+regulatory decisions, grant awards, SEC filings, patents, press and
+investor-relations items. It serves the results as open RSS feeds and manages
+them through a browser dashboard.
+
+This package is the other way in. It talks to the server's REST API so you can
+drive the whole thing from R: define the surveillance questions, then pull
+what they found straight into tibbles.
+
+```
+┌─────────────┐   HTTP + bearer token   ┌──────────────────────────────┐
+│  researchR  │ ──────────────────────► │  researchd                   │
+│  (this pkg) │ ◄────── tibbles ─────── │  R engine · FastAPI · cron   │
+└─────────────┘                         └──────────────────────────────┘
+                                              │
+                                    open RSS  ▼  →  Zotero, any reader
+```
+
+## Installation
+
+```r
+# install.packages("remotes")
+remotes::install_github("CTTIR/researchR")
+```
+
+You also need access to a running `researchd` server, which is distributed
+separately from this package.
+
+## Authentication
+
+`researchd` has two deliberately separate front doors:
+
+| Surface | Who it is for | How it authenticates |
+|---|---|---|
+| Dashboard (`/`) | you, in a browser | password **+ TOTP second factor** |
+| `/api/v1` | this package | bearer token |
+| Feeds (`/feed/…`) | Zotero, readers | open, no auth |
+
+A dashboard session is **not** accepted as an API token, and a token will not
+open the dashboard. Set the token once on the server as `API_TOKEN` in its
+`.env`, and once locally in `~/.Renviron`:
+
+```
+RESEARCHR_URL=https://feeds.example.org
+RESEARCHR_TOKEN=<the same value as API_TOKEN>
+```
+
+Keeping it in `~/.Renviron` rather than in a script is the point — the token is
+equivalent to write access to your questions. If the server has no `API_TOKEN`
+set, the API surface answers 503 rather than serving unauthenticated, and this
+package reports that as a `researchR_disabled` condition.
+
+## Usage
+
+```r
+library(researchR)
+
+conn <- rr_connect()          # reads RESEARCHR_URL / RESEARCHR_TOKEN
+conn
+#> ── researchd connection ──
+#> • server: https://feeds.example.org
+#> • token: set (64 characters, not shown)
+#> • api version: 1
+```
+
+### Define what to watch
+
+A question is a list of **concepts**, AND-joined at query time; the terms
+within one concept are OR-joined. So this asks for
+`(semaglutide OR tirzepatide OR "GLP-1") AND (MASH OR NASH OR steatohepatitis)`:
+
+```r
+rr_upsert_question(
+  conn, "glp1_mash", "GLP-1 receptor agonists in MASH",
+  concepts = list(
+    rr_concept("drug",    c("semaglutide", "tirzepatide", "GLP-1")),
+    rr_concept("disease", c("MASH", "NASH", "steatohepatitis"))),
+  sources        = list(pubmed = TRUE, europepmc = TRUE, biorxiv = TRUE),
+  from_days_back = 14,
+  email_enabled  = TRUE,
+  email_cron     = "0 7 * * 1",       # this question's own cadence
+  email_to       = "me@example.org")
+```
+
+### Pull what it found
+
+```r
+rr_records(conn, "glp1_mash", study_type = "rct", since = Sys.Date() - 90)
+#> # A tibble: 23 × 18
+#>    dedup_key   source  doi        title              study_type is_preprint score
+#>    <chr>       <chr>   <chr>      <chr>              <chr>            <int> <dbl>
+#>  1 doi:10.10…  pubmed  10.1056/…  Semaglutide in …   rct                  0  4.81
+#>  …
+```
+
+Reading never triggers a fetch — that is the server's job on its own cron. You
+are querying what it has already stored.
+
+### The signals track
+
+```r
+rr_signals(conn, "glp1_mash", min_confidence = "reported")
+```
+
+Signals carry an explicit confidence tier — `authoritative` (registries,
+regulators, SEC), `reported` (official but preliminary), `unverified` (scraped
+press or IR: a lead, not a fact). `min_confidence` is a **floor**, so
+`"reported"` returns reported *and* authoritative.
+
+### Recall versus precision
+
+The server stores everything it finds and never drops a record; scoring orders
+results, it does not filter them. A question in `digest_mode = "threshold"`
+shows only records above `min_score` in its curated feed and its digest email,
+but the full set stays queryable:
+
+```r
+rr_records(conn, "glp1_mash")                          # everything stored
+rr_records(conn, "glp1_mash", apply_threshold = TRUE)  # what the digest shows
+```
+
+### Watch for silently dead sources
+
+The worst failure mode of a surveillance system is a source that quietly stops
+returning anything, because the symptom — fewer results — looks exactly like a
+quiet week in the literature.
+
+```r
+rr_source_health(conn)
+```
+
+`last_ok` says the fetcher ran; `last_nonempty` says it actually found
+something. Both matter.
+
+### Hand a feed to Zotero
+
+Feeds are open, so the URL goes straight into Zotero
+(My Library → right-click → New Feed → From URL):
+
+```r
+rr_feed_url(conn, "glp1_mash")                      # the curated stream
+rr_feed_url(conn, "glp1_mash", all = TRUE)          # everything stored
+rr_feed_url(conn, "glp1_mash", study_type = "rct")
+rr_feed_url(conn, "glp1_mash", signals = TRUE)
+```
+
+## Function reference
+
+| | |
+|---|---|
+| `rr_connect()`, `rr_health()`, `rr_meta()` | connect; check the server; read its vocabulary |
+| `rr_questions()`, `rr_question()` | list and fetch questions |
+| `rr_concept()`, `rr_upsert_question()`, `rr_delete_question()` | define and edit them |
+| `rr_records()`, `rr_signals()` | pull the two tracks |
+| `rr_source_health()` | per-source fetch heartbeat |
+| `rr_signal_config()`, `rr_set_signal_config()` | signals-track settings |
+| `rr_feed_url()` | build feed URLs |
+
+## Testing
+
+Unit tests run offline:
+
+```r
+devtools::test()      # or: testthat::test_dir("tests/testthat")
+```
+
+The integration suite needs a live server and is skipped without one. Point it
+at a disposable instance:
+
+```r
+Sys.setenv(RESEARCHR_TEST_URL = "http://127.0.0.1:8000",
+           RESEARCHR_TEST_TOKEN = "…")
+```
+
+## License
+
+MIT © Raban Heller

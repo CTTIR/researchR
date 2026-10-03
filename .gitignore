@@ -1,0 +1,15 @@
+# ---- R package ----
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+*.Rcheck/
+researchR*.tar.gz
+src/*.o
+src/*.so
+..Rcheck/
+
+# ---- local test scratch ----
+.Rlib/
+**/__pycache__/
+*.pyc
