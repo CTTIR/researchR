@@ -186,7 +186,7 @@ MIT © Raban Heller
 
 ## Documentation and support
 
-The [getting-started vignette](vignettes/getting-started.Rmd) demonstrates offline
+The [getting-started vignette](https://github.com/CTTIR/researchR/blob/main/vignettes/getting-started.Rmd) demonstrates offline
 connection setup, concept construction and feed URLs, and separates those steps
 from requests that need a live server. To install the rendered vignette, use
 `remotes::install_github("CTTIR/researchR", build_vignettes = TRUE)`, then

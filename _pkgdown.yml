@@ -30,3 +30,5 @@ articles:
     navbar: ~
     contents:
       - getting-started
+
+llm-docs: false
