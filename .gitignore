@@ -13,3 +13,4 @@ src/*.so
 .Rlib/
 **/__pycache__/
 *.pyc
+/site/

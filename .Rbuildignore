@@ -9,3 +9,5 @@
 ^Meta$
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^_pkgdown\.yml$
+^site$

@@ -1,0 +1,32 @@
+template:
+  package: themakR
+development:
+  mode: auto
+destination: site
+reference:
+  - title: Connection and server health
+    contents:
+      - rr_connect
+      - rr_meta
+      - rr_health
+      - rr_heartbeat
+      - rr_source_health
+  - title: Surveillance questions
+    contents:
+      - rr_concept
+      - rr_questions
+      - rr_question
+      - rr_upsert_question
+      - rr_delete_question
+  - title: Records, signals and feeds
+    contents:
+      - rr_records
+      - rr_signals
+      - rr_feed_url
+      - rr_signal_config
+      - rr_set_signal_config
+articles:
+  - title: Guides
+    navbar: ~
+    contents:
+      - getting-started

@@ -1,4 +1,4 @@
-# researchR
+# researchR <img src="man/figures/logo.svg" align="right" height="139" alt="researchR hex logo" />
 
 An R client for [**researchd**](https://github.com/CTTIR/researchd), the
 self-hosted literature and signal surveillance server it is built for.
@@ -183,3 +183,15 @@ Sys.setenv(RESEARCHR_TEST_URL = "http://127.0.0.1:8000",
 ## License
 
 MIT © Raban Heller
+
+## Documentation and support
+
+The [getting-started vignette](vignettes/getting-started.Rmd) demonstrates offline
+connection setup, concept construction and feed URLs, and separates those steps
+from requests that need a live server. To install the rendered vignette, use
+`remotes::install_github("CTTIR/researchR", build_vignettes = TRUE)`, then
+`vignette("getting-started", package = "researchR")`.
+
+Use `help(package = "researchR")` for the API and `citation("researchR")` for
+citation details. Report reproducible issues with synthetic inputs at
+<https://github.com/CTTIR/researchR/issues>.

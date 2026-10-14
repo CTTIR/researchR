@@ -1,0 +1,116 @@
+---
+title: "Getting started with researchR"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting started with researchR}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+researchR is an R client for a separately deployed researchd server. The server
+collects literature and signals; this package configures surveillance questions
+and reads the stored results. It does not run a literature search locally.
+
+## Install and connect
+
+Install the development version from GitHub:
+
+```{r install, eval=FALSE}
+install.packages("remotes")
+remotes::install_github("CTTIR/researchR", build_vignettes = TRUE)
+```
+
+For a real server, configure `RESEARCHR_URL` and `RESEARCHR_TOKEN` privately.
+The token must match the server's API token. The browser dashboard has a separate
+login; its session is not an API credential. Do not put real tokens in scripts,
+reports, screenshots or version control.
+
+The following example runs entirely offline. It uses a reserved example URL and
+a deliberately invalid demonstration token. `check = FALSE` prevents the
+connection constructor from contacting a server; the default `check = TRUE`
+requests server metadata immediately.
+
+```{r offline-connection}
+library(researchR)
+conn <- rr_connect(
+  base_url = "https://feeds.example.org",
+  token = "demonstration-token-not-valid",
+  check = FALSE
+)
+conn
+```
+
+## Describe a question
+
+Terms within a concept are alternatives (OR); separate concepts are combined
+with AND. Constructing a concept only creates an R object.
+
+```{r concepts}
+concepts <- list(
+  rr_concept("exposure", terms = c("exercise", "physical activity")),
+  rr_concept("outcome", terms = c("fatigue", "tiredness"))
+)
+concepts
+```
+
+On a configured server, the following call creates or updates the named question.
+An update replaces its concept list, so supply the complete intended definition.
+This example is not evaluated while building the documentation. Email delivery
+is disabled explicitly.
+
+```{r save-question, eval=FALSE}
+live <- rr_connect()
+rr_upsert_question(
+  live, "exercise_fatigue", "Exercise and fatigue",
+  concepts = concepts,
+  sources = list(pubmed = TRUE, europepmc = TRUE),
+  from_days_back = 14,
+  email_enabled = FALSE
+)
+```
+
+## Read stored results
+
+These operations require your configured server and are not evaluated here.
+Reading stored records does not trigger a new collection run. A working server
+connection does not establish that every upstream source is healthy.
+
+```{r read-results, eval=FALSE}
+rr_questions(live)
+records <- rr_records(live, "exercise_fatigue")
+signals <- rr_signals(live, "exercise_fatigue")
+rr_source_health(live)
+rr_heartbeat(live)
+```
+
+Records and signals are returned as tibbles. Their contents depend on the
+server's collection history and vocabulary; inspect `rr_meta(live)` after a
+server upgrade. Empty results can mean that no records match or that collection
+has not yet completed. They are not evidence that the literature is absent.
+
+## Construct feed URLs
+
+Feed URL construction is local and does not contact the server. The default
+feed follows the question's curated selection; `all = TRUE` selects its complete
+record feed. Feed URLs contain no API token, and published feeds are open.
+
+```{r feeds}
+rr_feed_url(conn, "exercise_fatigue")
+rr_feed_url(conn, "exercise_fatigue", all = TRUE)
+rr_feed_url(conn, "exercise_fatigue", signals = TRUE)
+```
+
+Generating a URL does not verify that the corresponding question or feed exists.
+Use the API for private management, and review the server's feed publication
+settings before exposing a surveillance question.
+
+## Reference and support
+
+Use `help(package = "researchR")` for function contracts and
+`citation("researchR")` for the installed version's citation. Report reproducible
+problems at <https://github.com/CTTIR/researchR/issues>, with synthetic examples
+and credentials removed. researchR is distributed under the MIT license.

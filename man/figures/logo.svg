@@ -1,0 +1,135 @@
+<svg width="500" height="580" viewBox="0 0 500 580" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgres" x1="0" y1="0" x2="0.15" y2="1">
+      <stop offset="0%"  stop-color="#04120e"/>
+      <stop offset="100%" stop-color="#020a08"/>
+    </linearGradient>
+    <radialGradient id="radarGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"  stop-color="#1D9E75" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#1D9E75" stop-opacity="0"/>
+    </radialGradient>
+    <!-- radar sweep wedge -->
+    <linearGradient id="sweep" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%"  stop-color="#1D9E75" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#1D9E75" stop-opacity="0"/>
+    </linearGradient>
+    <clipPath id="hexres">
+      <polygon points="250,30 455,145 455,375 250,490 45,375 45,145"/>
+    </clipPath>
+  </defs>
+
+  <polygon points="250,30 455,145 455,375 250,490 45,375 45,145" fill="url(#bgres)"/>
+
+  <g clip-path="url(#hexres)">
+
+    <!-- faint grid -->
+    <line x1="45" y1="210" x2="455" y2="210" stroke="#0d3b2e" stroke-width="0.4" opacity="0.4"/>
+    <line x1="45" y1="270" x2="455" y2="270" stroke="#0d3b2e" stroke-width="0.4" opacity="0.4"/>
+    <line x1="45" y1="330" x2="455" y2="330" stroke="#0d3b2e" stroke-width="0.4" opacity="0.4"/>
+    <line x1="150" y1="145" x2="150" y2="490" stroke="#0d3b2e" stroke-width="0.4" opacity="0.3"/>
+    <line x1="250" y1="145" x2="250" y2="490" stroke="#0d3b2e" stroke-width="0.4" opacity="0.3"/>
+    <line x1="350" y1="145" x2="350" y2="490" stroke="#0d3b2e" stroke-width="0.4" opacity="0.3"/>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!-- SURVEILLANCE RADAR — the server watching sources         -->
+    <!-- concentric range rings + sweep wedge, centred (250,250)  -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <circle cx="250" cy="250" r="96" fill="url(#radarGlow)"/>
+    <circle cx="250" cy="250" r="92" fill="none" stroke="#12503C" stroke-width="1.2" opacity="0.7"/>
+    <circle cx="250" cy="250" r="64" fill="none" stroke="#12503C" stroke-width="1" opacity="0.6"/>
+    <circle cx="250" cy="250" r="36" fill="none" stroke="#12503C" stroke-width="1" opacity="0.55"/>
+    <!-- cross hairs -->
+    <line x1="158" y1="250" x2="342" y2="250" stroke="#12503C" stroke-width="0.8" opacity="0.5"/>
+    <line x1="250" y1="158" x2="250" y2="342" stroke="#12503C" stroke-width="0.8" opacity="0.5"/>
+
+    <!-- sweep wedge (rotated up-right) -->
+    <path d="M 250,250 L 250,158 A 92 92 0 0 1 315,185 Z" fill="url(#sweep)" opacity="0.9"/>
+    <line x1="250" y1="250" x2="250" y2="158" stroke="#1FBF8F" stroke-width="2" opacity="0.85"/>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!-- SIGNAL BLIPS — detected records & signals on the radar    -->
+    <!-- bright = new hit (in the sweep), dim = known              -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <circle cx="292" cy="196" r="4.5" fill="#7DF0C4"/>
+    <circle cx="292" cy="196" r="9" fill="#7DF0C4" opacity="0.25"/>
+    <circle cx="300" cy="238" r="3"   fill="#1FBF8F" opacity="0.9"/>
+    <circle cx="214" cy="212" r="3"   fill="#1D9E75" opacity="0.75"/>
+    <circle cx="206" cy="286" r="3"   fill="#1D9E75" opacity="0.7"/>
+    <circle cx="276" cy="300" r="2.6" fill="#1D9E75" opacity="0.65"/>
+    <circle cx="232" cy="262" r="2.4" fill="#80CBC4" opacity="0.6"/>
+    <circle cx="318" cy="268" r="2.4" fill="#1D9E75" opacity="0.6"/>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!-- SOURCE FEEDS — labelled inputs the server monitors        -->
+    <!-- small badges around the top arc                           -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <g font-family="monospace" font-size="7" font-weight="700" text-anchor="middle">
+      <g>
+        <rect x="92" y="168" width="58" height="15" rx="3.5" fill="#08382C" stroke="#1D9E75" stroke-width="1" opacity="0.9"/>
+        <text x="121" y="179" fill="#80CBC4">PubMed</text>
+      </g>
+      <g>
+        <rect x="350" y="168" width="60" height="15" rx="3.5" fill="#08382C" stroke="#1D9E75" stroke-width="1" opacity="0.9"/>
+        <text x="380" y="179" fill="#80CBC4">EuropePMC</text>
+      </g>
+      <g>
+        <rect x="356" y="300" width="58" height="15" rx="3.5" fill="#08382C" stroke="#1D9E75" stroke-width="1" opacity="0.9"/>
+        <text x="385" y="311" fill="#80CBC4">trials</text>
+      </g>
+      <g>
+        <rect x="88" y="300" width="58" height="15" rx="3.5" fill="#08382C" stroke="#1D9E75" stroke-width="1" opacity="0.9"/>
+        <text x="117" y="311" fill="#80CBC4">signals</text>
+      </g>
+    </g>
+    <!-- feed connectors (dashed, into the radar) -->
+    <g stroke="#1D9E75" stroke-width="0.8" stroke-dasharray="3 2" opacity="0.4" fill="none">
+      <path d="M 134,184 Q 170,210 190,228"/>
+      <path d="M 372,184 Q 338,210 312,226"/>
+      <path d="M 378,300 Q 340,288 316,278"/>
+      <path d="M 124,300 Q 160,290 186,282"/>
+    </g>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!-- CLIENT PULL → TIBBLE — records returned to R, bottom      -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!-- arrow from radar down to the tibble -->
+    <path d="M 250,346 L 250,372" stroke="#1FBF8F" stroke-width="2" opacity="0.8"/>
+    <polygon points="245,366 250,376 255,366" fill="#1FBF8F" opacity="0.8"/>
+
+    <!-- tibble: header + 3 rows, 4 cols -->
+    <g>
+      <rect x="176" y="378" width="148" height="12" rx="2" fill="#0a4436" stroke="#1D9E75" stroke-width="0.8" opacity="0.95"/>
+      <rect x="176" y="391" width="148" height="30" rx="2" fill="#061c16" stroke="#1D9E75" stroke-width="0.8" opacity="0.9"/>
+      <!-- column separators -->
+      <line x1="213" y1="378" x2="213" y2="421" stroke="#12503C" stroke-width="0.6" opacity="0.6"/>
+      <line x1="250" y1="378" x2="250" y2="421" stroke="#12503C" stroke-width="0.6" opacity="0.6"/>
+      <line x1="287" y1="378" x2="287" y2="421" stroke="#12503C" stroke-width="0.6" opacity="0.6"/>
+      <!-- header hint -->
+      <line x1="182" y1="384" x2="207" y2="384" stroke="#80CBC4" stroke-width="0.8" opacity="0.7"/>
+      <line x1="219" y1="384" x2="244" y2="384" stroke="#80CBC4" stroke-width="0.8" opacity="0.7"/>
+      <line x1="256" y1="384" x2="281" y2="384" stroke="#80CBC4" stroke-width="0.8" opacity="0.7"/>
+      <line x1="293" y1="384" x2="318" y2="384" stroke="#80CBC4" stroke-width="0.8" opacity="0.7"/>
+      <!-- row content hints -->
+      <g stroke="#3a6a5c" stroke-width="0.7" opacity="0.6">
+        <line x1="182" y1="398" x2="205" y2="398"/><line x1="219" y1="398" x2="242" y2="398"/><line x1="256" y1="398" x2="279" y2="398"/><line x1="293" y1="398" x2="314" y2="398"/>
+        <line x1="182" y1="406" x2="205" y2="406"/><line x1="219" y1="406" x2="242" y2="406"/><line x1="256" y1="406" x2="279" y2="406"/><line x1="293" y1="406" x2="314" y2="406"/>
+        <line x1="182" y1="414" x2="205" y2="414"/><line x1="219" y1="414" x2="242" y2="414"/><line x1="256" y1="414" x2="279" y2="414"/><line x1="293" y1="414" x2="314" y2="414"/>
+      </g>
+    </g>
+
+    <!-- annotation -->
+    <text font-family="monospace" font-size="8" fill="#1D9E75" opacity="0.6"
+      text-anchor="middle" x="250" y="434">surveillance → tibble</text>
+
+  </g>
+
+  <!-- Hex border — parser teal -->
+  <polygon points="250,30 455,145 455,375 250,490 45,375 45,145"
+    fill="none" stroke="#0F6E56" stroke-width="11" stroke-linejoin="round"/>
+  <polygon points="250,44 441,153 441,367 250,476 59,367 59,153"
+    fill="none" stroke="#1D9E75" stroke-width="1.5" stroke-linejoin="round" opacity="0.55"/>
+
+  <!-- Package name -->
+  <text font-family="monospace" font-weight="700" font-size="27"
+    fill="#80CBC4" text-anchor="middle" x="250" y="545" letter-spacing="1">researchR</text>
+</svg>
