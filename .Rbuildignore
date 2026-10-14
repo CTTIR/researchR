@@ -11,3 +11,4 @@
 ^\.Rproj\.user$
 ^_pkgdown\.yml$
 ^site$
+^pkgdown$

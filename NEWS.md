@@ -1,4 +1,4 @@
-# researchR (development version)
+# researchR 0.1.0
 
 * Added an executable offline getting-started vignette covering connection
   configuration, concepts and feed URLs, with explicit boundaries for server
