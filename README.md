@@ -1,6 +1,6 @@
 # researchR
 
-An R client for **researchd**, the
+An R client for [**researchd**](https://github.com/CTTIR/researchd), the
 self-hosted literature and signal surveillance server it is built for.
 
 `researchd` watches PubMed, Europe PMC, OpenAlex, Crossref, Semantic Scholar,
@@ -32,7 +32,7 @@ remotes::install_github("CTTIR/researchR")
 ```
 
 You also need access to a running `researchd` server, which is distributed
-separately from this package.
+separately under the [MIT license](https://github.com/CTTIR/researchd/blob/main/LICENSE).
 
 ## Authentication
 
