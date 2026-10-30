@@ -1,4 +1,4 @@
-# End-to-end against a live researchd. Skipped unless a test server is
+# End-to-end against a live researchD. Skipped unless a test server is
 # configured; see helper-server.R.
 
 test_that("we can connect and read the server's vocabulary", {

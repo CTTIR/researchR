@@ -48,7 +48,7 @@ rr_scalar <- function(x) {
   as.character(x[[1]])
 }
 
-#' Convert the columns researchd documents as typed
+#' Convert the columns researchD documents as typed
 #' @noRd
 rr_type_columns <- function(x) {
   num <- intersect(c("score", "min_score", "total"), names(x))

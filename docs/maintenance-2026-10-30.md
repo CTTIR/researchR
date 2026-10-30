@@ -107,3 +107,11 @@ rr_feed_url(conn, "exercise_fatigue")
 Feeds are public and limited to recent items. The API returns retained records;
 an empty response does not prove an absence of relevant research. Keep real
 credentials out of scripts, test fixtures, screenshots and issue reports.
+
+## Server naming update
+
+The server repository and local checkout were renamed from `researchd` to
+`researchD` on 30 October 2026. Current client links, checkout instructions
+and displayed server names use `CTTIR/researchD`. API paths and environment
+variable names are unchanged; historical evidence above retains its original
+paths and repository names.

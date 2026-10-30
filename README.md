@@ -1,9 +1,9 @@
 # researchR <picture class="cttir-readme-logo"><source class="cttir-logo-dark-source" media="(prefers-color-scheme: dark)" srcset="man/figures/logo-with-name-dark.png" /><img src="man/figures/logo-with-name.png" align="right" alt="researchR logo" width="120" height="139" /></picture>
 
-An R client for [**researchd**](https://github.com/CTTIR/researchd), the
+An R client for [**researchD**](https://github.com/CTTIR/researchD), the
 self-hosted literature and signal surveillance server it is built for.
 
-`researchd` collects from configured literature sources on a schedule,
+`researchD` collects from configured literature sources on a schedule,
 deduplicates and classifies hits by study type, and tracks a parallel stream of
 non-publication *signals* — trial registrations and results postings,
 regulatory decisions, grant awards, SEC filings, patents, press and
@@ -11,7 +11,7 @@ investor-relations items. It serves the results as open RSS feeds and manages
 them through a browser dashboard.
 
 Coverage depends on enabled adapters, upstream access and the collection
-history. Consult the server's [source support and operating instructions](https://github.com/CTTIR/researchd)
+history. Consult the server's [source support and operating instructions](https://github.com/CTTIR/researchD)
 before relying on a particular source or signal type. Study-type labels are
 screening aids and require review.
 
@@ -21,7 +21,7 @@ what they found straight into tibbles.
 
 ```
 ┌─────────────┐   HTTP + bearer token   ┌──────────────────────────────┐
-│  researchR  │ ──────────────────────► │  researchd                   │
+│  researchR  │ ──────────────────────► │  researchD                   │
 │  (this pkg) │ ◄────── tibbles ─────── │  R engine · FastAPI · cron   │
 └─────────────┘                         └──────────────────────────────┘
                                               │
@@ -35,14 +35,14 @@ what they found straight into tibbles.
 remotes::install_github("CTTIR/researchR")
 ```
 
-You also need access to a running `researchd` server, which is distributed
-separately under the [MIT license](https://github.com/CTTIR/researchd/blob/main/LICENSE).
+You also need access to a running `researchD` server, which is distributed
+separately under the [MIT license](https://github.com/CTTIR/researchD/blob/main/LICENSE).
 The client requires R 4.1 or later. Install from a local source checkout with
 `remotes::install_local("/path/to/researchR", build_vignettes = TRUE)`.
 
 ## Authentication
 
-`researchd` has two deliberately separate front doors:
+`researchD` has two deliberately separate front doors:
 
 | Surface | Who it is for | How it authenticates |
 |---|---|---|
@@ -71,7 +71,7 @@ library(researchR)
 
 conn <- rr_connect()          # reads the environment and checks the API token
 conn
-#> ── researchd connection ──
+#> ── researchD connection ──
 #> • server: https://feeds.example.org
 #> • token: set (64 characters, not shown)
 #> • api version: 1
@@ -204,7 +204,7 @@ Sys.setenv(RESEARCHR_TEST_URL = "http://127.0.0.1:8000",
            RESEARCHR_TEST_TOKEN = "…")
 ```
 
-With adjacent server and client checkouts, `researchd/dev/tests/integration_client.sh`
+With adjacent server and client checkouts, `researchD/dev/tests/integration_client.sh`
 starts a disposable server, seeds synthetic records, exercises both repositories,
 and stops the server. It requires the server's test dependencies and uses an
 isolated temporary directory. The client integration tests create and delete questions;
