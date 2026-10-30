@@ -25,7 +25,9 @@ rr_upsert_question(
 \arguments{
 \item{conn}{A \code{\link[=rr_connect]{rr_connect()}} connection.}
 
-\item{question_id}{Question id (a slug, e.g. \code{"glp1_mash"}).}
+\item{question_id}{Question id (a slug, e.g. \code{"glp1_mash"}): starts with
+a letter or digit, followed by letters, digits, underscores or hyphens;
+at most 128 characters.}
 
 \item{label}{Human-readable label.}
 

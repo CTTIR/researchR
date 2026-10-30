@@ -4,7 +4,8 @@
 
 QUESTION_COLS <- c("id", "label", "enabled", "from_days_back", "digest_mode",
                    "min_score", "email_enabled", "email_cron",
-                   "email_last_sent")
+                   "email_last_sent", "email_to", "study_filter", "delivery",
+                   "sources", "api_key_present", "concepts")
 
 #' List the surveillance questions
 #'
@@ -20,7 +21,6 @@ QUESTION_COLS <- c("id", "label", "enabled", "from_days_back", "digest_mode",
 #' @export
 rr_questions <- function(conn) {
   rows <- rr_get(conn, "questions")
-  if (!length(rows)) return(rr_rows_to_tbl(list(), QUESTION_COLS))
   out <- tibble::tibble(
     id             = vapply(rows, function(r) rr_scalar(r$id), character(1)),
     label          = vapply(rows, function(r) rr_scalar(r$label), character(1)),
@@ -37,7 +37,7 @@ rr_questions <- function(conn) {
     sources        = lapply(rows, function(r) r$sources %||% list()),
     api_key_present = lapply(rows, function(r) r$api_key_present %||% list()),
     concepts       = lapply(rows, function(r) lapply(r$concepts, rr_as_concept)))
-  out$email_last_sent <- suppressWarnings(as.POSIXct(out$email_last_sent, tz = "UTC"))
+  out$email_last_sent <- rr_parse_time(out$email_last_sent)
   out
 }
 
@@ -50,6 +50,7 @@ rr_questions <- function(conn) {
 #' rr_question(rr_connect(), "glp1_mash")
 #' @export
 rr_question <- function(conn, question_id) {
+  rr_string(question_id, "question_id")
   all <- rr_questions(conn)
   hit <- all[all$id == question_id, , drop = FALSE]
   if (!nrow(hit)) {
@@ -75,6 +76,13 @@ rr_question <- function(conn, question_id) {
 #' rr_concept("drug", terms = c("semaglutide", "GLP-1"))
 #' @export
 rr_concept <- function(name, terms = character(0), mesh = character(0)) {
+  rr_string(name, "name")
+  for (field in c("terms", "mesh")) {
+    value <- get(field)
+    if (!is.character(value) || anyNA(value) || any(!nzchar(trimws(value)))) {
+      cli::cli_abort("{.arg {field}} must be a character vector of non-empty, non-missing terms.")
+    }
+  }
   structure(list(name = as.character(name),
                  terms = as.character(terms),
                  mesh = as.character(mesh)),
@@ -107,7 +115,9 @@ print.researchr_concept <- function(x, ...) {
 #' key untouched; pass the literal `"__CLEAR__"` to delete one.
 #'
 #' @param conn A [rr_connect()] connection.
-#' @param question_id Question id (a slug, e.g. `"glp1_mash"`).
+#' @param question_id Question id (a slug, e.g. `"glp1_mash"`): starts with
+#'   a letter or digit, followed by letters, digits, underscores or hyphens;
+#'   at most 128 characters.
 #' @param label Human-readable label.
 #' @param concepts List of [rr_concept()] blocks.
 #' @param sources Named list of per-source toggles, e.g.
@@ -151,10 +161,27 @@ rr_upsert_question <- function(conn, question_id, label, concepts,
                                email_enabled = FALSE,
                                email_cron = "0 7 * * 1",
                                email_to = character(0)) {
+  rr_string(question_id, "question_id")
+  if (nchar(question_id) > 128L ||
+      !grepl("^[A-Za-z0-9][A-Za-z0-9_-]*$", question_id)) {
+    cli::cli_abort("{.arg question_id} must be a slug of at most 128 letters, digits, underscores or hyphens, starting with a letter or digit.")
+  }
+  rr_string(label, "label")
+  rr_number(from_days_back, "from_days_back", lower = 1, integer = TRUE)
+  if (from_days_back > .Machine$integer.max) cli::cli_abort("{.arg from_days_back} is too large.")
+  rr_number(min_score, "min_score")
+  rr_flag(enabled, "enabled")
+  rr_flag(email_enabled, "email_enabled")
+  rr_string(email_cron, "email_cron")
   digest_mode <- match.arg(digest_mode)
   if (inherits(concepts, "researchr_concept")) concepts <- list(concepts)
   if (!length(concepts)) {
     cli::cli_abort("A question needs at least one concept; see {.fun rr_concept}.")
+  }
+  for (cpt in concepts) {
+    if (!is.list(cpt) || is.null(cpt$name)) cli::cli_abort("Each concept must have a name, terms and mesh headings; use {.fun rr_concept}.")
+    rr_concept(cpt$name, cpt$terms %||% character(), cpt$mesh %||% character())
+    if (!length(cpt$terms) && !length(cpt$mesh)) cli::cli_abort("Each concept needs at least one term or MeSH heading.")
   }
   body <- list(
     id = question_id, label = label,
@@ -188,7 +215,7 @@ rr_upsert_question <- function(conn, question_id, label, concepts,
 #' rr_delete_question(rr_connect(), "obsolete_question")
 #' @export
 rr_delete_question <- function(conn, question_id) {
-  rr_delete_path(conn, paste0("questions/", question_id))
+  rr_delete_path(conn, paste0("questions/", rr_path_id(question_id)))
   cli::cli_alert_success("Question {.val {question_id}} deleted.")
   invisible(TRUE)
 }

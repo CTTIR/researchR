@@ -6,7 +6,8 @@
 #'
 #' Creates the connection object every other function in this package takes as
 #' its first argument. Nothing is sent at connection time unless `check =
-#' TRUE`, so building a connection is cheap and offline-safe.
+#' TRUE`. The default checks the server immediately; use `check = FALSE`
+#' to construct an offline connection.
 #'
 #' # Authentication
 #'
@@ -37,16 +38,27 @@ rr_connect <- function(base_url = Sys.getenv("RESEARCHR_URL"),
                        token = Sys.getenv("RESEARCHR_TOKEN"),
                        timeout = 60,
                        check = TRUE) {
-  if (!nzchar(base_url %||% "")) {
+  if (is.null(base_url) || identical(base_url, "")) {
     cli::cli_abort(c(
       "No researchd URL given.",
       i = "Pass {.arg base_url}, or set {.envvar RESEARCHR_URL} in {.file ~/.Renviron}."))
   }
-  if (!nzchar(token %||% "")) {
+  if (is.null(token) || identical(token, "")) {
     cli::cli_abort(c(
       "No API token given.",
       i = "Pass {.arg token}, or set {.envvar RESEARCHR_TOKEN} in {.file ~/.Renviron}.",
       i = "It must match {.envvar API_TOKEN} in the server's {.file .env}."))
+  }
+  rr_string(base_url, "base_url")
+  rr_string(token, "token")
+  rr_number(timeout, "timeout", lower = .Machine$double.eps)
+  rr_flag(check, "check")
+  url <- tryCatch(httr2::url_parse(base_url), error = function(e) NULL)
+  if (is.null(url) || is.null(url$scheme) || !url$scheme %in% c("http", "https") ||
+      is.null(url$hostname) || !nzchar(url$hostname) ||
+      nzchar(url$username %||% "") || nzchar(url$password %||% "") ||
+      length(url$query) || nzchar(url$fragment %||% "")) {
+    cli::cli_abort("{.arg base_url} must be an HTTP(S) server URL without embedded credentials, query parameters or a fragment.")
   }
   conn <- structure(
     list(base_url = sub("/+$", "", base_url),
@@ -117,8 +129,10 @@ rr_health <- function(conn) {
   req <- httr2::req_url_path_append(req, "healthz")
   req <- httr2::req_timeout(req, conn$timeout)
   req <- httr2::req_error(req, is_error = function(resp) FALSE)
-  ok <- tryCatch(
-    identical(trimws(httr2::resp_body_string(httr2::req_perform(req))), "ok"),
-    error = function(e) FALSE)
+  ok <- tryCatch({
+    resp <- httr2::req_perform(req)
+    httr2::resp_status(resp) == 200L &&
+      identical(trimws(httr2::resp_body_string(resp)), "ok")
+  }, error = function(e) FALSE)
   ok
 }

@@ -6,7 +6,7 @@
 \alias{researchR-package}
 \title{researchR: Client for a Self-Hosted 'researchd' Literature Surveillance Server}
 \description{
-An R client for 'researchd', the self-hosted literature and signal surveillance server it is built for. 'researchd' watches PubMed, Europe PMC, OpenAlex, Crossref, Semantic Scholar, ClinicalTrials.gov and the preprint servers on a schedule, deduplicates and classifies what it finds by study type, and tracks non-publication signals such as trial registrations, regulatory decisions and filings. This package talks to its token-authenticated REST API, returning questions, records and signals as tidy 'tibble' objects, and lets you create and edit the surveillance questions themselves from R rather than from the browser dashboard.
+An R client for 'researchd', a self-hosted literature and signal surveillance server. Configures surveillance questions and reads stored literature records, signals, source health and service heartbeats through a token-authenticated REST API. Returns typed 'tibble' objects, including source provenance where supported by the server. Collection, classification, source access and delivery are managed by the server.
 }
 \seealso{
 Useful links:

@@ -13,3 +13,4 @@
 ^site$
 ^pkgdown$
 ^tools/branding$
+^docs$

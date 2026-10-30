@@ -44,7 +44,8 @@ gone out in a digest.}
 }
 \value{
 A tibble of records, one row each, with \code{pub_date} as \code{Date} and
-\code{first_seen} as \code{POSIXct}.
+\code{first_seen} as UTC \code{POSIXct}. \code{provenance} is a list column of source
+contributors; it is empty for servers that do not expose provenance.
 }
 \description{
 Pulls what researchd has already found and stored — this never triggers a
@@ -53,14 +54,17 @@ cron schedule.
 }
 \details{
 Results are paginated by the server; this function follows the pages for
-you up to \code{n_max}.
+you up to \code{n_max}. Offset pagination is not a database snapshot. If the
+result count changes or a record repeats during paging, the request stops
+with \code{researchR_pagination_changed}; retry after collection has finished.
 }
 \section{Recall versus precision}{
-The server stores \emph{everything} it finds and never drops a record. Scoring
-orders results; it does not filter them. \code{apply_threshold = TRUE}
+Scoring orders results without deleting below-threshold records.
+\code{apply_threshold = TRUE}
 reproduces what the curated feed and the digest email show for questions
 in \code{digest_mode = "threshold"}; the default \code{FALSE} gives you the complete
-stored set, the equivalent of the \code{all.xml} safety valve.
+stored set. RSS feeds, including \code{all.xml}, have a server-side item limit.
+Configured server retention can remove old records.
 }
 
 \examples{
