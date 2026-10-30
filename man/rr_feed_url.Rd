@@ -18,12 +18,14 @@ rr_feed_url(
 
 \item{question_id}{Question id.}
 
-\item{study_type}{Optional study type, for a filtered feed.}
+\item{study_type}{Optional study type, or signal type when \code{signals = TRUE},
+for a filtered feed. URL construction does not query server metadata.}
 
 \item{all}{If \code{TRUE}, the unfiltered feed: everything stored, ignoring the
 question's digest threshold.}
 
-\item{preprints}{If \code{TRUE}, the preprints-only feed.}
+\item{preprints}{If \code{TRUE}, the preprints-only literature feed. Cannot be
+combined with \code{signals = TRUE}.}
 
 \item{signals}{If \code{TRUE}, the signals stream rather than the literature one.}
 }

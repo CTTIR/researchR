@@ -21,15 +21,11 @@
 #' rr_source_health(rr_connect())
 #' @export
 rr_source_health <- function(conn, stale_days = 3) {
+  rr_number(stale_days, "stale_days", lower = 1, integer = TRUE)
   res <- rr_get(conn, "source_health", list(stale_days = stale_days))
   rows <- res$sources %||% list()
   out <- rr_rows_to_tbl(rows, c("source", "track", "last_ok", "last_nonempty",
                                 "error_runs", "total_runs", "stale"))
-  if (nrow(out)) {
-    out$stale <- tolower(out$stale) %in% c("true", "1")
-    out$error_runs <- as.integer(out$error_runs)
-    out$total_runs <- as.integer(out$total_runs)
-  }
   rr_type_columns(out)
 }
 
@@ -53,7 +49,6 @@ rr_heartbeat <- function(conn) {
   out <- rr_rows_to_tbl(res$services %||% list(),
                         c("service", "last_run", "last_ok", "last_detail",
                           "last_error", "stale"))
-  if (nrow(out)) out$stale <- tolower(out$stale) %in% c("true", "1")
   rr_type_columns(out)
 }
 
@@ -68,7 +63,7 @@ rr_heartbeat <- function(conn) {
 #' rr_signal_config(rr_connect(), "glp1_mash")
 #' @export
 rr_signal_config <- function(conn, question_id) {
-  rr_get(conn, paste0("signal_config/", question_id))
+  rr_get(conn, paste0("signal_config/", rr_path_id(question_id)))
 }
 
 #' Update a question's signals configuration
@@ -97,6 +92,13 @@ rr_set_signal_config <- function(conn, question_id,
                                  feed_categories = NULL,
                                  scrape_targets = NULL,
                                  api_keys = NULL) {
+  if (!is.null(min_confidence)) {
+    rr_string(min_confidence, "min_confidence")
+    if (!min_confidence %in% c("unverified", "reported", "authoritative")) {
+      cli::cli_abort("{.arg min_confidence} must be unverified, reported or authoritative.")
+    }
+  }
+  rr_flag(instant_alerts, "instant_alerts", optional = TRUE)
   current <- rr_signal_config(conn, question_id)
   body <- list(
     sources = rr_obj(sources %||% current$sources),
@@ -106,7 +108,7 @@ rr_set_signal_config <- function(conn, question_id,
     feed_categories = rr_obj(feed_categories %||% current$feed_categories),
     scrape_targets = scrape_targets %||% (current$scrape_targets %||% list()),
     api_keys = rr_obj(api_keys))
-  rr_post(conn, paste0("signal_config/", question_id), body)
+  rr_post(conn, paste0("signal_config/", rr_path_id(question_id)), body)
   cli::cli_alert_success("Signal config for {.val {question_id}} saved.")
   invisible(rr_signal_config(conn, question_id))
 }
@@ -118,10 +120,12 @@ rr_set_signal_config <- function(conn, question_id,
 #'
 #' @param conn A [rr_connect()] connection.
 #' @param question_id Question id.
-#' @param study_type Optional study type, for a filtered feed.
+#' @param study_type Optional study type, or signal type when `signals = TRUE`,
+#'   for a filtered feed. URL construction does not query server metadata.
 #' @param all If `TRUE`, the unfiltered feed: everything stored, ignoring the
 #'   question's digest threshold.
-#' @param preprints If `TRUE`, the preprints-only feed.
+#' @param preprints If `TRUE`, the preprints-only literature feed. Cannot be
+#'   combined with `signals = TRUE`.
 #' @param signals If `TRUE`, the signals stream rather than the literature one.
 #' @return A single URL string.
 #' @examples
@@ -132,6 +136,14 @@ rr_set_signal_config <- function(conn, question_id,
 rr_feed_url <- function(conn, question_id, study_type = NULL,
                         all = FALSE, preprints = FALSE, signals = FALSE) {
   rr_check_conn(conn)
+  rr_flag(all, "all")
+  rr_flag(preprints, "preprints")
+  rr_flag(signals, "signals")
+  question_id <- rr_path_id(question_id)
+  if (!is.null(study_type)) study_type <- rr_path_id(study_type, "study_type")
+  if (signals && preprints) {
+    cli::cli_abort("{.arg preprints} is only available for literature feeds; it cannot be combined with {.arg signals}.")
+  }
   n_set <- sum(!is.null(study_type), isTRUE(all), isTRUE(preprints))
   if (n_set > 1) {
     cli::cli_abort("Choose at most one of {.arg study_type}, {.arg all}, {.arg preprints}.")

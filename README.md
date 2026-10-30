@@ -3,13 +3,17 @@
 An R client for [**researchd**](https://github.com/CTTIR/researchd), the
 self-hosted literature and signal surveillance server it is built for.
 
-`researchd` watches PubMed, Europe PMC, OpenAlex, Crossref, Semantic Scholar,
-ClinicalTrials.gov and the preprint servers on a schedule; deduplicates across
-them; classifies every hit by study type; and tracks a parallel stream of
+`researchd` collects from configured literature sources on a schedule,
+deduplicates and classifies hits by study type, and tracks a parallel stream of
 non-publication *signals* — trial registrations and results postings,
 regulatory decisions, grant awards, SEC filings, patents, press and
 investor-relations items. It serves the results as open RSS feeds and manages
 them through a browser dashboard.
+
+Coverage depends on enabled adapters, upstream access and the collection
+history. Consult the server's [source support and operating instructions](https://github.com/CTTIR/researchd)
+before relying on a particular source or signal type. Study-type labels are
+screening aids and require review.
 
 This package is the other way in. It talks to the server's REST API so you can
 drive the whole thing from R: define the surveillance questions, then pull
@@ -33,6 +37,8 @@ remotes::install_github("CTTIR/researchR")
 
 You also need access to a running `researchd` server, which is distributed
 separately under the [MIT license](https://github.com/CTTIR/researchd/blob/main/LICENSE).
+The client requires R 4.1 or later. Install from a local source checkout with
+`remotes::install_local("/path/to/researchR", build_vignettes = TRUE)`.
 
 ## Authentication
 
@@ -63,13 +69,19 @@ package reports that as a `researchR_disabled` condition.
 ```r
 library(researchR)
 
-conn <- rr_connect()          # reads RESEARCHR_URL / RESEARCHR_TOKEN
+conn <- rr_connect()          # reads the environment and checks the API token
 conn
 #> ── researchd connection ──
 #> • server: https://feeds.example.org
 #> • token: set (64 characters, not shown)
 #> • api version: 1
 ```
+
+For the first connection, use `rr_health(conn)` to check web liveness, then
+`rr_heartbeat(conn)` and `rr_source_health(conn)` to inspect collection status.
+`rr_connect(check = FALSE)` constructs a connection offline; it does not check
+the URL or token against a running server. A successful API connection alone
+does not establish that collection or delivery has run.
 
 ### Define what to watch
 
@@ -117,8 +129,7 @@ press or IR: a lead, not a fact). `min_confidence` is a **floor**, so
 
 ### Recall versus precision
 
-The server stores everything it finds and never drops a record; scoring orders
-results, it does not filter them. A question in `digest_mode = "threshold"`
+Scoring orders results without discarding below-threshold records. A question in `digest_mode = "threshold"`
 shows only records above `min_score` in its curated feed and its digest email,
 but the full set stays queryable:
 
@@ -126,6 +137,18 @@ but the full set stays queryable:
 rr_records(conn, "glp1_mash")                          # everything stored
 rr_records(conn, "glp1_mash", apply_threshold = TRUE)  # what the digest shows
 ```
+
+The API returns the records currently retained by the server. Configured
+retention can remove old records. RSS feeds contain only the server's most
+recent `FEED_LIMIT` items, including `all.xml`; use `rr_records()` for a paginated
+read of the retained set. If that set changes during pagination, the client
+reports `researchR_pagination_changed` rather than silently repeating records.
+Retry after the collection run has finished. Offset pagination does not provide
+a transactionally frozen snapshot.
+
+Empty responses retain their column types. Times are UTC `POSIXct`, dates are
+`Date`, and `provenance` is a list column describing source contributions when
+the server provides them. Older servers return an empty provenance list per row.
 
 ### Watch for silently dead sources
 
@@ -166,10 +189,11 @@ rr_feed_url(conn, "glp1_mash", signals = TRUE)
 
 ## Testing
 
-Unit tests run offline:
+The package's unit tests run offline:
 
 ```r
-devtools::test()      # or: testthat::test_dir("tests/testthat")
+pkgload::load_all(".")
+testthat::test_dir("tests/testthat", package = "researchR", load_package = "none")
 ```
 
 The integration suite needs a live server and is skipped without one. Point it
@@ -179,6 +203,15 @@ at a disposable instance:
 Sys.setenv(RESEARCHR_TEST_URL = "http://127.0.0.1:8000",
            RESEARCHR_TEST_TOKEN = "…")
 ```
+
+With adjacent server and client checkouts, `researchd/dev/tests/integration_client.sh`
+starts a disposable server, seeds synthetic records, exercises both repositories,
+and stops the server. It requires the server's test dependencies and uses an
+isolated temporary directory. The client integration tests create and delete questions;
+use a disposable instance, never a production database.
+
+The [maintenance record](docs/maintenance-2026-10-30.md) lists the audit findings,
+acceptance criteria, verification results and remaining release work.
 
 ## License
 

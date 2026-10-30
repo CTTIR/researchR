@@ -5,6 +5,8 @@ test_that("query values are rendered the way FastAPI expects", {
   expect_identical(f(as.Date("2026-08-26")), "2026-08-26")
   expect_identical(f(3L), "3")
   expect_identical(f(1.25), "1.25")
+  expect_identical(f(1e6), "1000000")
+  expect_identical(f(1.234567891), "1.234567891")
 })
 
 test_that("NULL query parameters are dropped, FALSE ones are not", {

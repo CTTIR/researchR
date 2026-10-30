@@ -28,7 +28,8 @@ An object of class \code{researchr_conn}.
 }
 \description{
 Creates the connection object every other function in this package takes as
-its first argument. Nothing is sent at connection time unless \code{check = TRUE}, so building a connection is cheap and offline-safe.
+its first argument. Nothing is sent at connection time unless \code{check = TRUE}. The default checks the server immediately; use \code{check = FALSE}
+to construct an offline connection.
 }
 \section{Authentication}{
 researchd exposes two disjoint authentication surfaces. The browser

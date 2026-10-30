@@ -115,12 +115,18 @@ Records and signals are returned as tibbles. Their contents depend on the
 server's collection history and vocabulary; inspect `rr_meta(live)` after a
 server upgrade. Empty results can mean that no records match or that collection
 has not yet completed. They are not evidence that the literature is absent.
+Empty responses preserve the same column types as populated results. Timestamp
+columns use UTC and honor offsets supplied by the server; record `provenance` and
+signal `extra` fields are list columns. A change detected while fetching pages
+raises `researchR_pagination_changed`; retry once collection finishes.
 
 ## Construct feed URLs
 
 Feed URL construction is local and does not contact the server. The default
-feed follows the question's curated selection; `all = TRUE` selects its complete
-record feed. Feed URLs contain no API token, and published feeds are open.
+feed follows the question's curated selection; `all = TRUE` removes the score
+threshold. Every RSS feed is still capped by the server's `FEED_LIMIT`; use
+`rr_records()` for all retained records. Feed URLs contain no API token, and
+published feeds are open.
 
 ```{r feeds}
 rr_feed_url(conn, "exercise_fatigue")

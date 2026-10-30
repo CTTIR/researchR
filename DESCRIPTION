@@ -1,21 +1,17 @@
 Package: researchR
 Title: Client for a Self-Hosted 'researchd' Literature Surveillance Server
-Version: 0.1.0
-Date: 2026-08-26
+Version: 0.1.1
+Date: 2026-10-30
 Authors@R: person("Raban", "Heller",
  email = "raban.heller@uni-ulm.de",
  role = c("aut", "cre", "cph"),
  comment = c(ORCID = "0000-0001-8006-9742"))
-Description: An R client for 'researchd', the self-hosted literature and
- signal surveillance server it is built for. 'researchd'
- watches PubMed, Europe PMC, OpenAlex, Crossref, Semantic Scholar,
- ClinicalTrials.gov and the preprint servers on a schedule, deduplicates
- and classifies what it finds by study type, and tracks non-publication
- signals such as trial registrations, regulatory decisions and filings.
- This package talks to its token-authenticated REST API, returning
- questions, records and signals as tidy 'tibble' objects, and lets you
- create and edit the surveillance questions themselves from R rather
- than from the browser dashboard.
+Description: An R client for 'researchd', a self-hosted literature and
+ signal surveillance server. Configures surveillance questions and reads
+ stored literature records, signals, source health and service heartbeats
+ through a token-authenticated REST API. Returns typed 'tibble' objects,
+ including source provenance where supported by the server. Collection,
+ classification, source access and delivery are managed by the server.
 License: MIT + file LICENSE
 URL: https://github.com/CTTIR/researchR
 BugReports: https://github.com/CTTIR/researchR/issues
@@ -31,7 +27,7 @@ Imports: cli,
  utils
 Suggests: knitr,
  rmarkdown,
- testthat (>= 3.0.0),
+ testthat (>= 3.2.0),
  withr
 Config/testthat/edition: 3
 Config/roxygen2/version: 8.1.0
