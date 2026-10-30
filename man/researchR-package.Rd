@@ -4,9 +4,9 @@
 \name{researchR-package}
 \alias{researchR}
 \alias{researchR-package}
-\title{researchR: Client for a Self-Hosted 'researchd' Literature Surveillance Server}
+\title{researchR: Client for a Self-Hosted 'researchD' Literature Surveillance Server}
 \description{
-An R client for 'researchd', a self-hosted literature and signal surveillance server. Configures surveillance questions and reads stored literature records, signals, source health and service heartbeats through a token-authenticated REST API. Returns typed 'tibble' objects, including source provenance where supported by the server. Collection, classification, source access and delivery are managed by the server.
+An R client for 'researchD', a self-hosted literature and signal surveillance server. Configures surveillance questions and reads stored literature records, signals, source health and service heartbeats through a token-authenticated REST API. Returns typed 'tibble' objects, including source provenance where supported by the server. Collection, classification, source access and delivery are managed by the server.
 }
 \seealso{
 Useful links:

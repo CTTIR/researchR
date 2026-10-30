@@ -35,7 +35,7 @@ rr_perform <- function(req, conn) {
     error = function(e) {
       reason <- conditionMessage(e)
       cli::cli_abort(
-        c("Could not reach the researchd server at {.url {conn$base_url}}.",
+        c("Could not reach the researchD server at {.url {conn$base_url}}.",
           x = "{reason}",
           i = "Is the container running, and is {.arg base_url} right?"),
         class = "researchR_unreachable", call = NULL)
@@ -47,19 +47,19 @@ rr_perform <- function(req, conn) {
   detail <- rr_error_detail(resp)
   if (status == 401) {
     cli::cli_abort(
-      c("The researchd server rejected the API token (HTTP 401).",
+      c("The researchD server rejected the API token (HTTP 401).",
         i = "Check {.envvar RESEARCHR_TOKEN} against {.envvar API_TOKEN} in the server's {.file .env}."),
       class = "researchR_unauthorized", call = NULL)
   }
   if (status == 503 && grepl("API disabled", detail, fixed = TRUE)) {
     cli::cli_abort(
-      c("The researchd API surface is disabled (HTTP 503).",
+      c("The researchD API surface is disabled (HTTP 503).",
         i = "Set {.envvar API_TOKEN} in the server's {.file .env} and restart the {.code web} service.",
         x = "{detail}"),
       class = "researchR_disabled", call = NULL)
   }
   if (status == 503) {
-    cli::cli_abort(c("The researchd server is temporarily unavailable (HTTP 503).",
+    cli::cli_abort(c("The researchD server is temporarily unavailable (HTTP 503).",
                     x = "{detail}"),
                    class = c("researchR_unavailable", "researchR_http_error"), call = NULL)
   }
@@ -67,7 +67,7 @@ rr_perform <- function(req, conn) {
     cli::cli_abort(c("Not found (HTTP 404).", x = "{detail}"),
                    class = "researchR_not_found", call = NULL)
   }
-  cli::cli_abort(c("researchd returned HTTP {status}.", x = "{detail}"),
+  cli::cli_abort(c("researchD returned HTTP {status}.", x = "{detail}"),
                  class = "researchR_http_error", call = NULL)
 }
 

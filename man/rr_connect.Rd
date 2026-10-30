@@ -2,7 +2,7 @@
 % Please edit documentation in R/connect.R
 \name{rr_connect}
 \alias{rr_connect}
-\title{Connect to a researchd server}
+\title{Connect to a researchD server}
 \usage{
 rr_connect(
   base_url = Sys.getenv("RESEARCHR_URL"),
@@ -12,7 +12,7 @@ rr_connect(
 )
 }
 \arguments{
-\item{base_url}{Base URL of the researchd web service, e.g.
+\item{base_url}{Base URL of the researchD web service, e.g.
 \code{"https://feeds.example.org"}. Defaults to the \code{RESEARCHR_URL}
 environment variable.}
 
@@ -32,7 +32,7 @@ its first argument. Nothing is sent at connection time unless \code{check = TRUE
 to construct an offline connection.
 }
 \section{Authentication}{
-researchd exposes two disjoint authentication surfaces. The browser
+researchD exposes two disjoint authentication surfaces. The browser
 dashboard is behind a password plus a TOTP second factor; the \verb{/api/v1}
 surface this package uses is behind a bearer token. A dashboard session is
 deliberately \emph{not} accepted as an API token, and vice versa.

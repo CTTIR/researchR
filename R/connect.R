@@ -2,7 +2,7 @@
 # Connections.
 # ---------------------------------------------------------------------------
 
-#' Connect to a researchd server
+#' Connect to a researchD server
 #'
 #' Creates the connection object every other function in this package takes as
 #' its first argument. Nothing is sent at connection time unless `check =
@@ -11,7 +11,7 @@
 #'
 #' # Authentication
 #'
-#' researchd exposes two disjoint authentication surfaces. The browser
+#' researchD exposes two disjoint authentication surfaces. The browser
 #' dashboard is behind a password plus a TOTP second factor; the `/api/v1`
 #' surface this package uses is behind a bearer token. A dashboard session is
 #' deliberately *not* accepted as an API token, and vice versa.
@@ -22,7 +22,7 @@
 #' set, the whole surface answers 503 rather than serving unauthenticated —
 #' this package reports that as a `researchR_disabled` condition.
 #'
-#' @param base_url Base URL of the researchd web service, e.g.
+#' @param base_url Base URL of the researchD web service, e.g.
 #'   `"https://feeds.example.org"`. Defaults to the `RESEARCHR_URL`
 #'   environment variable.
 #' @param token API bearer token. Defaults to the `RESEARCHR_TOKEN`
@@ -40,7 +40,7 @@ rr_connect <- function(base_url = Sys.getenv("RESEARCHR_URL"),
                        check = TRUE) {
   if (is.null(base_url) || identical(base_url, "")) {
     cli::cli_abort(c(
-      "No researchd URL given.",
+      "No researchD URL given.",
       i = "Pass {.arg base_url}, or set {.envvar RESEARCHR_URL} in {.file ~/.Renviron}."))
   }
   if (is.null(token) || identical(token, "")) {
@@ -66,7 +66,7 @@ rr_connect <- function(base_url = Sys.getenv("RESEARCHR_URL"),
          timeout = timeout,
          user_agent = paste0("researchR/",
                              utils::packageVersion("researchR"),
-                             " (R client for researchd)")),
+                             " (R client for researchD)")),
     class = "researchr_conn")
   if (isTRUE(check)) conn$meta <- rr_meta(conn)
   conn
@@ -74,7 +74,7 @@ rr_connect <- function(base_url = Sys.getenv("RESEARCHR_URL"),
 
 #' @export
 print.researchr_conn <- function(x, ...) {
-  cli::cli_h1("researchd connection")
+  cli::cli_h1("researchD connection")
   cli::cli_li("server: {.url {x$base_url}}")
   cli::cli_li("token: {.emph set} ({nchar(x$token)} characters, not shown)")
   if (!is.null(x$meta)) {

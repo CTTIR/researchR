@@ -9,7 +9,7 @@ RECORD_COLS <- c("dedup_key", "question_id", "source", "ext_id", "doi", "title",
 
 #' Fetch stored literature records
 #'
-#' Pulls what researchd has already found and stored — this never triggers a
+#' Pulls what researchD has already found and stored — this never triggers a
 #' fetch from the upstream databases, which is the pipeline's own job on its
 #' cron schedule.
 #'

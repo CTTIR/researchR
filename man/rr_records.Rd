@@ -48,7 +48,7 @@ A tibble of records, one row each, with \code{pub_date} as \code{Date} and
 contributors; it is empty for servers that do not expose provenance.
 }
 \description{
-Pulls what researchd has already found and stored — this never triggers a
+Pulls what researchD has already found and stored — this never triggers a
 fetch from the upstream databases, which is the pipeline's own job on its
 cron schedule.
 }

@@ -1,12 +1,12 @@
 Package: researchR
-Title: Client for a Self-Hosted 'researchd' Literature Surveillance Server
+Title: Client for a Self-Hosted 'researchD' Literature Surveillance Server
 Version: 0.1.1
 Date: 2026-10-30
 Authors@R: person("Raban", "Heller",
  email = "raban.heller@uni-ulm.de",
  role = c("aut", "cre", "cph"),
  comment = c(ORCID = "0000-0001-8006-9742"))
-Description: An R client for 'researchd', a self-hosted literature and
+Description: An R client for 'researchD', a self-hosted literature and
  signal surveillance server. Configures surveillance questions and reads
  stored literature records, signals, source health and service heartbeats
  through a token-authenticated REST API. Returns typed 'tibble' objects,

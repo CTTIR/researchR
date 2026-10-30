@@ -35,7 +35,7 @@ resource_files:
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
-researchR is an R client for a separately deployed researchd server. The server
+researchR is an R client for a separately deployed researchD server. The server
 collects literature and signals; this package configures surveillance questions
 and reads the stored results. It does not run a literature search locally.
 

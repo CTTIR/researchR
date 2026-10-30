@@ -1,5 +1,5 @@
 test_that("rr_connect refuses to build a useless connection", {
-  expect_error(rr_connect("", "tok"), "No researchd URL")
+  expect_error(rr_connect("", "tok"), "No researchD URL")
   expect_error(rr_connect("https://x.invalid", ""), "No API token")
 })
 
