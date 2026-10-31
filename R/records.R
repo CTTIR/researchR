@@ -17,6 +17,8 @@ RECORD_COLS <- c("dedup_key", "question_id", "source", "ext_id", "doi", "title",
 #' you up to `n_max`. Offset pagination is not a database snapshot. If the
 #' result count changes or a record repeats during paging, the request stops
 #' with `researchR_pagination_changed`; retry after collection has finished.
+#' Malformed responses or structured metadata raise `researchR_protocol_error`
+#' rather than being silently replaced by empty results.
 #'
 #' # Recall versus precision
 #'
@@ -73,7 +75,7 @@ rr_records <- function(conn, question_id,
                                    apply_threshold = apply_threshold),
                       n_max = n_max, page_size = page_size)
   out <- rr_type_columns(rr_rows_to_tbl(rows, RECORD_COLS))
-  out$provenance <- rr_json_column(out$provenance)
+  out$provenance <- rr_json_column(out$provenance, "provenance")
   out
 }
 
@@ -106,7 +108,8 @@ SIGNAL_COLS <- c("dedup_key", "question_id", "signal_type", "source", "ext_id",
 #' @param n_max Maximum signals to return.
 #' @param page_size Signals per request.
 #' @return A tibble of signals. `extra` is parsed from JSON into a list
-#'   column of type-specific fields.
+#'   column of type-specific fields. Malformed `extra` JSON raises
+#'   `researchR_protocol_error`; absent or null metadata becomes an empty list.
 #' @examplesIf nzchar(Sys.getenv("RESEARCHR_URL"))
 #' rr_signals(rr_connect(), "glp1_mash", min_confidence = "reported")
 #' @export
@@ -129,7 +132,7 @@ rr_signals <- function(conn, question_id, signal_type = NULL,
                                    since = since),
                       n_max = n_max, page_size = page_size)
   out <- rr_type_columns(rr_rows_to_tbl(rows, SIGNAL_COLS))
-  if ("extra" %in% names(out)) out$extra <- rr_json_column(out$extra)
+  if ("extra" %in% names(out)) out$extra <- rr_json_column(out$extra, "extra")
   out
 }
 

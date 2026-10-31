@@ -21,8 +21,9 @@ rr_feed_url(
 \item{study_type}{Optional study type, or signal type when \code{signals = TRUE},
 for a filtered feed. URL construction does not query server metadata.}
 
-\item{all}{If \code{TRUE}, the unfiltered feed: everything stored, ignoring the
-question's digest threshold.}
+\item{all}{If \code{TRUE}, ignore the question's digest threshold. All feeds
+still contain at most the server's configured \code{FEED_LIMIT} recent items;
+use \code{\link[=rr_records]{rr_records()}} or \code{\link[=rr_signals]{rr_signals()}} for the retained collection.}
 
 \item{preprints}{If \code{TRUE}, the preprints-only literature feed. Cannot be
 combined with \code{signals = TRUE}.}

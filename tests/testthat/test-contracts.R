@@ -37,6 +37,25 @@ test_that("record provenance remains compatible with servers that omit it", {
   expect_identical(recs$provenance[[2]], list())
 })
 
+test_that("malformed structured metadata is not silently discarded", {
+  rows <- list(list(dedup_key = "a", provenance = '{"broken"'))
+  local_mocked_bindings(rr_get = function(...) list(total = 1L, records = rows),
+                       .package = "researchR")
+  expect_error(rr_records(offline_conn(), "q"), "provenance.*row 1",
+               class = "researchR_protocol_error")
+  rows[[1]]$provenance <- '"not structured"'
+  expect_error(rr_records(offline_conn(), "q"), class = "researchR_protocol_error")
+  rows[[1]]$provenance <- "null"
+  expect_identical(rr_records(offline_conn(), "q")$provenance[[1]], list())
+})
+
+test_that("missing health rows do not masquerade as a successful empty response", {
+  local_mocked_bindings(rr_get = function(...) list(status = "ok"), .package = "researchR")
+  expect_error(rr_source_health(offline_conn()), class = "researchR_protocol_error")
+  expect_error(rr_heartbeat(offline_conn()), class = "researchR_protocol_error")
+  expect_error(rr_questions(offline_conn()), class = "researchR_protocol_error")
+})
+
 test_that("server timestamps preserve clock times, fractions and UTC offsets", {
   local_mocked_bindings(rr_get = function(...) list(list(
     id = "q", label = "Q", concepts = list(), enabled = TRUE,
@@ -96,6 +115,8 @@ test_that("query filters reject ambiguous values locally", {
   expect_error(rr_records(conn, "q", is_preprint = NA), "is_preprint")
   expect_error(rr_records(conn, "q", since = "2026-02-30"), "valid date")
   expect_error(rr_records(conn, "q", since = "2026-10-30junk"), "valid date")
+  expect_error(rr_records(conn, "q", since = as.Date(Inf, origin = "1970-01-01")), "finite")
+  expect_error(rr_signals(conn, "q", since = as.POSIXct(-Inf, origin = "1970-01-01")), "finite")
   expect_error(rr_records(conn, "q", since = "2026-10-30", until = "2026-10-29"), "later")
   expect_error(rr_signals(conn, "q", min_confidence = "certain"), "min_confidence")
   expect_error(rr_set_signal_config(conn, "q", instant_alerts = "yes"), "instant_alerts")

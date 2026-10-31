@@ -31,7 +31,7 @@ at most 128 characters.}
 
 \item{label}{Human-readable label.}
 
-\item{concepts}{List of \code{\link[=rr_concept]{rr_concept()}} blocks.}
+\item{concepts}{List of \code{\link[=rr_concept]{rr_concept()}} blocks. Optional list names are ignored.}
 
 \item{sources}{Named list of per-source toggles, e.g.
 \code{list(pubmed = TRUE, biorxiv = FALSE)}. Sources you do not name fall back
@@ -48,8 +48,8 @@ Empty means maximum recall.}
 
 \item{digest_mode}{\code{"all"} or \code{"threshold"}. Under \code{"threshold"} the
 curated feed and the email show only records scoring at least
-\code{min_score}; everything is still stored and still visible in
-\code{all.xml}.}
+\code{min_score}. Below-threshold records remain queryable through the API;
+\code{all.xml} also omits the threshold but keeps the server's feed item limit.}
 
 \item{min_score}{Score cutoff used when \code{digest_mode = "threshold"}.}
 
@@ -77,7 +77,7 @@ key untouched; pass the literal \code{"__CLEAR__"} to delete one.
 }
 
 \examples{
-\dontshow{if (nzchar(Sys.getenv("RESEARCHR_URL"))) withAutoprint(\{ # examplesIf}
+\dontrun{
 rr_upsert_question(
   rr_connect(), "glp1_mash", "GLP-1 receptor agonists in MASH",
   concepts = list(
@@ -86,5 +86,5 @@ rr_upsert_question(
   sources = list(pubmed = TRUE, europepmc = TRUE),
   email_enabled = TRUE, email_cron = "0 7 * * 1",
   email_to = "me@example.org")
-\dontshow{\}) # examplesIf}
+}
 }

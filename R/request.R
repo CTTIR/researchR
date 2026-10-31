@@ -29,11 +29,12 @@ rr_req <- function(conn, path, query = list()) {
 
 #' Perform a request and translate failures into researchR conditions
 #' @noRd
-rr_perform <- function(req, conn) {
+rr_perform <- function(req, conn, secrets = character()) {
+  secrets <- c(conn$token, secrets)
   resp <- tryCatch(
     httr2::req_perform(req),
     error = function(e) {
-      reason <- conditionMessage(e)
+      reason <- rr_redact(conditionMessage(e), secrets)
       cli::cli_abort(
         c("Could not reach the researchD server at {.url {conn$base_url}}.",
           x = "{reason}",
@@ -44,7 +45,7 @@ rr_perform <- function(req, conn) {
   status <- httr2::resp_status(resp)
   if (status < 400) return(resp)
 
-  detail <- rr_error_detail(resp)
+  detail <- rr_redact(rr_error_detail(resp), secrets)
   if (status == 401) {
     cli::cli_abort(
       c("The researchD server rejected the API token (HTTP 401).",
@@ -80,29 +81,81 @@ rr_error_detail <- function(resp) {
   # A 422 returns `detail` as a LIST of per-field errors, so the list branch
   # has to come before any scalar test -- nzchar() on a length-4 list throws.
   if (is.list(out)) {
+    # FastAPI validation errors may echo the entire input body, including
+    # write-only API keys. Keep error locations/messages, never echoed inputs.
+    strip_input <- function(x) {
+      if (!is.list(x)) return(x)
+      if (!is.null(names(x))) {
+        x <- x[!tolower(names(x)) %in% c("input", "ctx", "api_keys", "token", "authorization")]
+      }
+      lapply(x, strip_input)
+    }
+    out <- strip_input(out)
     return(paste(as.character(jsonlite::toJSON(out, auto_unbox = TRUE)), collapse = " "))
   }
   out <- as.character(out)[1]
   if (is.na(out) || !nzchar(out)) "(no detail returned)" else out
 }
 
+#' Redact credentials echoed as plain, JSON-escaped or URL-encoded text
+#' @noRd
+rr_redact <- function(text, secrets) {
+  secrets <- unique(as.character(secrets))
+  secrets <- secrets[!is.na(secrets) & nzchar(secrets)]
+  variants <- unlist(lapply(secrets, function(secret) {
+    encoded <- utils::URLencode(secret, reserved = TRUE, repeated = TRUE)
+    lower_hex <- encoded
+    matches <- gregexpr("%[0-9A-Fa-f]{2}", lower_hex)
+    regmatches(lower_hex, matches) <- lapply(regmatches(lower_hex, matches), tolower)
+    forms <- unique(c(secret, encoded, lower_hex,
+                       gsub("%20", "+", encoded, fixed = TRUE),
+                       gsub("%20", "+", lower_hex, fixed = TRUE)))
+    escaped <- vapply(forms, function(value) {
+      json <- as.character(jsonlite::toJSON(value, auto_unbox = TRUE))
+      substr(json, 2L, nchar(json) - 1L)
+    }, character(1))
+    c(forms, escaped)
+  }), use.names = FALSE)
+  variants <- unique(variants)
+  for (secret in variants[order(nchar(variants), decreasing = TRUE)]) {
+    text <- gsub(secret, "[REDACTED]", text, fixed = TRUE)
+  }
+  text
+}
+
+#' Read a successful JSON response without reporting its potentially private body
+#' @noRd
+rr_response_json <- function(resp) {
+  # Force the request outside the parser handler: transport/HTTP errors must
+  # retain their own condition classes rather than becoming JSON failures.
+  force(resp)
+  out <- tryCatch(httr2::resp_body_json(resp, simplifyVector = FALSE), error = function(e) {
+    cli::cli_abort("The server returned invalid JSON. Check the server and reverse-proxy configuration.",
+                   class = "researchR_protocol_error", call = NULL)
+  })
+  if (!is.list(out)) {
+    cli::cli_abort("The server returned an unexpected JSON value instead of an API object or array.",
+                   class = "researchR_protocol_error", call = NULL)
+  }
+  out
+}
+
 #' GET one path and return the parsed JSON body
 #' @noRd
 rr_get <- function(conn, path, query = list()) {
-  httr2::resp_body_json(rr_perform(rr_req(conn, path, query), conn),
-                        simplifyVector = FALSE)
+  rr_response_json(rr_perform(rr_req(conn, path, query), conn))
 }
 
 #' POST a JSON body
 #' @noRd
 rr_post <- function(conn, path, body) {
   req <- httr2::req_body_json(rr_req(conn, path), body, auto_unbox = TRUE)
-  httr2::resp_body_json(rr_perform(req, conn), simplifyVector = FALSE)
+  rr_response_json(rr_perform(req, conn, secrets = unlist(body$api_keys, use.names = FALSE)))
 }
 
 #' DELETE one path
 #' @noRd
 rr_delete_path <- function(conn, path) {
   req <- httr2::req_method(rr_req(conn, path), "DELETE")
-  httr2::resp_body_json(rr_perform(req, conn), simplifyVector = FALSE)
+  rr_response_json(rr_perform(req, conn))
 }

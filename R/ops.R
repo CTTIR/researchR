@@ -23,7 +23,7 @@
 rr_source_health <- function(conn, stale_days = 3) {
   rr_number(stale_days, "stale_days", lower = 1, integer = TRUE)
   res <- rr_get(conn, "source_health", list(stale_days = stale_days))
-  rows <- res$sources %||% list()
+  rows <- res$sources
   out <- rr_rows_to_tbl(rows, c("source", "track", "last_ok", "last_nonempty",
                                 "error_runs", "total_runs", "stale"))
   rr_type_columns(out)
@@ -46,7 +46,7 @@ rr_source_health <- function(conn, stale_days = 3) {
 #' @export
 rr_heartbeat <- function(conn) {
   res <- rr_get(conn, "heartbeat")
-  out <- rr_rows_to_tbl(res$services %||% list(),
+  out <- rr_rows_to_tbl(res$services,
                         c("service", "last_run", "last_ok", "last_detail",
                           "last_error", "stale"))
   rr_type_columns(out)
@@ -77,13 +77,16 @@ rr_signal_config <- function(conn, question_id) {
 #' @param instant_alerts If `TRUE`, high-priority signals are emailed on the
 #'   next scheduler tick rather than waiting for the digest cadence.
 #' @param feed_categories Named list of curated-feed category toggles.
-#' @param scrape_targets List of scrape target definitions.
+#' @param scrape_targets List of scrape target definitions. Optional list names
+#'   are ignored.
 #' @param api_keys Named list of plaintext signal API keys. Write-only, as
 #'   with [rr_upsert_question()].
 #' @return Invisibly, the configuration as the server now holds it.
-#' @examplesIf nzchar(Sys.getenv("RESEARCHR_URL"))
+#' @examples
+#' \dontrun{
 #' rr_set_signal_config(rr_connect(), "glp1_mash",
 #'                      min_confidence = "reported", instant_alerts = TRUE)
+#' }
 #' @export
 rr_set_signal_config <- function(conn, question_id,
                                  sources = NULL,
@@ -106,7 +109,7 @@ rr_set_signal_config <- function(conn, question_id,
     instant_alerts = if (is.null(instant_alerts)) isTRUE(current$instant_alerts)
                      else isTRUE(instant_alerts),
     feed_categories = rr_obj(feed_categories %||% current$feed_categories),
-    scrape_targets = scrape_targets %||% (current$scrape_targets %||% list()),
+    scrape_targets = rr_array(scrape_targets %||% current$scrape_targets),
     api_keys = rr_obj(api_keys))
   rr_post(conn, paste0("signal_config/", rr_path_id(question_id)), body)
   cli::cli_alert_success("Signal config for {.val {question_id}} saved.")
@@ -122,8 +125,9 @@ rr_set_signal_config <- function(conn, question_id,
 #' @param question_id Question id.
 #' @param study_type Optional study type, or signal type when `signals = TRUE`,
 #'   for a filtered feed. URL construction does not query server metadata.
-#' @param all If `TRUE`, the unfiltered feed: everything stored, ignoring the
-#'   question's digest threshold.
+#' @param all If `TRUE`, ignore the question's digest threshold. All feeds
+#'   still contain at most the server's configured `FEED_LIMIT` recent items;
+#'   use [rr_records()] or [rr_signals()] for the retained collection.
 #' @param preprints If `TRUE`, the preprints-only literature feed. Cannot be
 #'   combined with `signals = TRUE`.
 #' @param signals If `TRUE`, the signals stream rather than the literature one.

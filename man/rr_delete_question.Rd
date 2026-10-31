@@ -19,7 +19,7 @@ Deleting a question cascades: its concepts, stored records, signals and
 signal configuration go with it. This cannot be undone.
 }
 \examples{
-\dontshow{if (nzchar(Sys.getenv("RESEARCHR_URL"))) withAutoprint(\{ # examplesIf}
+\dontrun{
 rr_delete_question(rr_connect(), "obsolete_question")
-\dontshow{\}) # examplesIf}
+}
 }

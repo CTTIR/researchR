@@ -146,6 +146,11 @@ reports `researchR_pagination_changed` rather than silently repeating records.
 Retry after the collection run has finished. Offset pagination does not provide
 a transactionally frozen snapshot.
 
+Malformed API responses or invalid structured metadata raise
+`researchR_protocol_error`; they are not treated as an empty search. Request
+errors redact submitted source keys and the bearer token, including when an
+older server echoes them in validation errors.
+
 Empty responses retain their column types. Times are UTC `POSIXct`, dates are
 `Date`, and `provenance` is a list column describing source contributions when
 the server provides them. Older servers return an empty provenance list per row.
@@ -209,6 +214,11 @@ starts a disposable server, seeds synthetic records, exercises both repositories
 and stops the server. It requires the server's test dependencies and uses an
 isolated temporary directory. The client integration tests create and delete questions;
 use a disposable instance, never a production database.
+
+Examples that save, delete or reconfigure questions are marked `\dontrun` so
+package checks and ordinary `example()` calls cannot execute them merely
+because `RESEARCHR_URL` is set. Run those examples explicitly only against the
+intended server after reviewing their question IDs and delivery settings.
 
 The [maintenance record](docs/maintenance-2026-10-30.md) lists the audit findings,
 acceptance criteria, verification results and remaining release work.

@@ -22,6 +22,10 @@
 #' set, the whole surface answers 503 rather than serving unauthenticated —
 #' this package reports that as a `researchR_disabled` condition.
 #'
+#' A checked connection requires valid API v1 metadata. Malformed responses
+#' raise `researchR_protocol_error`. Request errors redact the bearer token
+#' and submitted source keys; do not include credentials in diagnostic reports.
+#'
 #' @param base_url Base URL of the researchD web service, e.g.
 #'   `"https://feeds.example.org"`. Defaults to the `RESEARCHR_URL`
 #'   environment variable.
@@ -110,6 +114,19 @@ rr_check_conn <- function(conn) {
 #' @export
 rr_meta <- function(conn) {
   out <- rr_get(conn, "meta")
+  if (!is.list(out) || !is.numeric(out$api_version) ||
+      length(out$api_version) != 1L || is.na(out$api_version) || out$api_version != 1) {
+    cli::cli_abort("The server did not return supported API v1 metadata. Check the server URL and version.",
+                   class = "researchR_protocol_error")
+  }
+  for (field in c("study_types", "signal_types")) {
+    values <- out[[field]]
+    if (!length(values) || !all(vapply(values, function(x)
+        is.character(x) && length(x) == 1L && !is.na(x) && nzchar(x), logical(1)))) {
+      cli::cli_abort("The server returned invalid {.field {field}} metadata.",
+                     class = "researchR_protocol_error")
+    }
+  }
   lapply(out, function(x) if (is.list(x) && !is.null(names(x))) x else unlist(x))
 }
 
