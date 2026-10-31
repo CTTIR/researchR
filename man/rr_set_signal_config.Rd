@@ -31,7 +31,8 @@ next scheduler tick rather than waiting for the digest cadence.}
 
 \item{feed_categories}{Named list of curated-feed category toggles.}
 
-\item{scrape_targets}{List of scrape target definitions.}
+\item{scrape_targets}{List of scrape target definitions. Optional list names
+are ignored.}
 
 \item{api_keys}{Named list of plaintext signal API keys. Write-only, as
 with \code{\link[=rr_upsert_question]{rr_upsert_question()}}.}
@@ -43,8 +44,8 @@ Invisibly, the configuration as the server now holds it.
 Update a question's signals configuration
 }
 \examples{
-\dontshow{if (nzchar(Sys.getenv("RESEARCHR_URL"))) withAutoprint(\{ # examplesIf}
+\dontrun{
 rr_set_signal_config(rr_connect(), "glp1_mash",
                      min_confidence = "reported", instant_alerts = TRUE)
-\dontshow{\}) # examplesIf}
+}
 }

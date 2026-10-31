@@ -38,11 +38,12 @@ test_that("documented columns get their documented types", {
   expect_s3_class(out$first_seen, "POSIXct")
 })
 
-test_that("JSON columns parse, and malformed JSON degrades to an empty list", {
-  out <- researchR:::rr_json_column(c('{"phase":"3"}', "not json", NA))
+test_that("JSON columns distinguish absent metadata from malformed JSON", {
+  out <- researchR:::rr_json_column(c('{"phase":"3"}', "null", NA))
   expect_identical(out[[1]]$phase, "3")
   expect_identical(out[[2]], list())
   expect_identical(out[[3]], list())
+  expect_error(researchR:::rr_json_column("not json"), class = "researchR_protocol_error")
 })
 
 test_that("concepts round-trip through the server's shape", {

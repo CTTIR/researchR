@@ -33,15 +33,15 @@ test_that("questions round-trip through the client", {
 
   rr_upsert_question(
     conn, id, "Client integration question",
-    concepts = list(rr_concept("drug", c("semaglutide", "GLP-1"),
+    concepts = list(drug = rr_concept("drug", c("semaglutide", "GLP-1"),
                                mesh = "Glucagon-Like Peptide 1"),
-                    rr_concept("disease", c("MASH", "steatohepatitis"))),
+                    disease = rr_concept("disease", c("MASH", "steatohepatitis"))),
     sources = list(pubmed = TRUE, biorxiv = FALSE),
     api_keys = list(pubmed = "PLAINTEXT-SHOULD-NEVER-COME-BACK"),
-    study_filter = "randomized controlled trial",
+    study_filter = c(design = "randomized controlled trial"),
     from_days_back = 14, digest_mode = "threshold", min_score = 1.25,
-    delivery = c("file", "zotero"), email_enabled = TRUE,
-    email_cron = "0 7 * * 1", email_to = c("a@example.org", "b@example.org"))
+    delivery = c(local = "file", reference = "zotero"), email_enabled = TRUE,
+    email_cron = "0 7 * * 1", email_to = c(first = "a@example.org", second = "b@example.org"))
 
   q <- rr_question(conn, id)
   expect_identical(q$label, "Client integration question")
@@ -69,6 +69,16 @@ test_that("the plaintext API key never comes back over the wire", {
   expect_false(any(grepl("PLAINTEXT-SHOULD-NEVER-COME-BACK",
                          unlist(lapply(q, as.character)), fixed = TRUE)))
   expect_true(isTRUE(q$api_key_present[[1]]$pubmed))
+})
+
+test_that("a rejected question never exposes its supplied API key", {
+  skip_without_server()
+  key <- "SYNTHETIC-VALIDATION-KEY-NEVER-DISPLAY"
+  err <- tryCatch(rr_upsert_question(test_conn(), "client_invalid", "Invalid",
+    rr_concept("drug", "test"), email_cron = "bad cron",
+    api_keys = list(pubmed = key)), error = identity)
+  expect_s3_class(err, "researchR_http_error")
+  expect_false(grepl(key, conditionMessage(err), fixed = TRUE))
 })
 
 test_that("records come back typed, filtered and paginated", {
@@ -152,10 +162,13 @@ test_that("signal config round-trips", {
   conn <- test_conn()
   qid <- Sys.getenv("RESEARCHR_TEST_QUESTION", "seeded")
   rr_set_signal_config(conn, qid, min_confidence = "reported",
-                       instant_alerts = TRUE)
+                       instant_alerts = TRUE,
+                       scrape_targets = list(journal = list(name = "Synthetic feed",
+                         type = "rss", url = "https://example.org/feed.xml")))
   cfg <- rr_signal_config(conn, qid)
   expect_identical(cfg$min_confidence, "reported")
   expect_true(isTRUE(cfg$instant_alerts))
+  expect_identical(cfg$scrape_targets[[1]]$url, "https://example.org/feed.xml")
 })
 
 test_that("the service heartbeat is readable", {

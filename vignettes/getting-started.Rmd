@@ -119,6 +119,10 @@ Empty responses preserve the same column types as populated results. Timestamp
 columns use UTC and honor offsets supplied by the server; record `provenance` and
 signal `extra` fields are list columns. A change detected while fetching pages
 raises `researchR_pagination_changed`; retry once collection finishes.
+Malformed API responses or structured metadata raise `researchR_protocol_error`
+instead of implying that the search or metadata is empty. Request errors redact
+submitted API keys and the bearer token; still remove credentials before sharing
+diagnostics or a reproducible example.
 
 ## Construct feed URLs
 

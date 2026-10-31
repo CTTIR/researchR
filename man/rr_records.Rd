@@ -57,6 +57,8 @@ Results are paginated by the server; this function follows the pages for
 you up to \code{n_max}. Offset pagination is not a database snapshot. If the
 result count changes or a record repeats during paging, the request stops
 with \code{researchR_pagination_changed}; retry after collection has finished.
+Malformed responses or structured metadata raise \code{researchR_protocol_error}
+rather than being silently replaced by empty results.
 }
 \section{Recall versus precision}{
 Scoring orders results without deleting below-threshold records.

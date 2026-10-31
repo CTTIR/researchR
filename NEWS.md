@@ -1,3 +1,16 @@
+# researchR 0.1.2
+
+* Keep source API keys and bearer tokens out of displayed request errors,
+  including validation responses from older servers that echo request input
+  and JSON-escaped or URL-encoded credentials in diagnostics.
+* Serialize named concept lists, recipient/delivery vectors and scrape-target
+  lists as JSON arrays, preserving their order and values.
+* Reject malformed API metadata, missing row collections, invalid structured
+  metadata and non-finite date bounds instead of reporting a successful
+  connection, empty metadata or a misleading filter result.
+* Prevent package checks and ordinary example runs from executing the examples
+  that create, delete or reconfigure questions. Clarify feed limits and errors.
+
 # researchR 0.1.1
 
 * Preserve the time, fractional seconds and UTC offset of server timestamps.

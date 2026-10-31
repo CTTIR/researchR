@@ -28,6 +28,7 @@ rr_query_value <- function(x) {
 #' a correctly-typed zero-row tibble instead of a `list()`.
 #' @noRd
 rr_rows_to_tbl <- function(rows, cols) {
+  rr_check_rows(rows)
   if (!length(rows)) {
     empty <- lapply(cols, function(.) character(0))
     names(empty) <- cols
@@ -38,6 +39,17 @@ rr_rows_to_tbl <- function(rows, cols) {
     vapply(rows, function(r) rr_scalar(r[[nm]]), character(1)))
   names(out) <- cols
   tibble::as_tibble(out)
+}
+
+#' Reject missing or malformed row collections instead of implying no results
+#' @noRd
+rr_check_rows <- function(rows) {
+  if (!is.list(rows) || length(names(rows)) ||
+      !all(vapply(rows, function(row) is.list(row) && length(names(row)) > 0L, logical(1)))) {
+    cli::cli_abort("The server returned an invalid row collection.",
+                   class = "researchR_protocol_error")
+  }
+  invisible(TRUE)
 }
 
 #' One JSON value -> one character scalar (NA for null/empty)
@@ -134,8 +146,10 @@ rr_path_id <- function(x, name = "question_id") {
 rr_date_bound <- function(x, name) {
   if (is.null(x)) return(NULL)
   if (inherits(x, "Date") || inherits(x, "POSIXt")) {
-    if (length(x) != 1L || is.na(x)) cli::cli_abort("{.arg {name}} must be one non-missing date.")
-    return(format(x, "%Y-%m-%d"))
+    if (length(x) != 1L || is.na(x) || !is.finite(as.numeric(x))) {
+      cli::cli_abort("{.arg {name}} must be one finite, non-missing date.")
+    }
+    x <- format(x, "%Y-%m-%d")
   }
   rr_string(x, name)
   parsed <- suppressWarnings(as.Date(x, format = "%Y-%m-%d"))
@@ -148,12 +162,26 @@ rr_date_bound <- function(x, name) {
 
 #' Parse a JSON string column back into a list column
 #' @noRd
-rr_json_column <- function(x) {
-  lapply(x, function(s) {
+rr_json_column <- function(x, field = "metadata") {
+  lapply(seq_along(x), function(i) {
+    s <- x[[i]]
     if (is.na(s) || !nzchar(s)) return(list())
-    tryCatch(jsonlite::fromJSON(s, simplifyVector = FALSE), error = function(e) list())
+    out <- tryCatch(jsonlite::fromJSON(s, simplifyVector = FALSE), error = function(e) {
+      cli::cli_abort("The server returned invalid {.field {field}} JSON in row {i}.",
+                     class = "researchR_protocol_error")
+    })
+    if (is.null(out)) return(list())
+    if (!is.list(out)) {
+      cli::cli_abort("The server returned a non-structured {.field {field}} value in row {i}.",
+                     class = "researchR_protocol_error")
+    }
+    out
   })
 }
+
+#' Force array fields to remain arrays even when R values have names
+#' @noRd
+rr_array <- function(x) unname(as.list(x))
 
 #' Force a named-list field to serialise as a JSON object, never an array
 #'

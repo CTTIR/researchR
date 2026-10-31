@@ -21,6 +21,7 @@ QUESTION_COLS <- c("id", "label", "enabled", "from_days_back", "digest_mode",
 #' @export
 rr_questions <- function(conn) {
   rows <- rr_get(conn, "questions")
+  rr_check_rows(rows)
   out <- tibble::tibble(
     id             = vapply(rows, function(r) rr_scalar(r$id), character(1)),
     label          = vapply(rows, function(r) rr_scalar(r$label), character(1)),
@@ -119,7 +120,7 @@ print.researchr_concept <- function(x, ...) {
 #'   a letter or digit, followed by letters, digits, underscores or hyphens;
 #'   at most 128 characters.
 #' @param label Human-readable label.
-#' @param concepts List of [rr_concept()] blocks.
+#' @param concepts List of [rr_concept()] blocks. Optional list names are ignored.
 #' @param sources Named list of per-source toggles, e.g.
 #'   `list(pubmed = TRUE, biorxiv = FALSE)`. Sources you do not name fall back
 #'   to the server's global defaults.
@@ -130,8 +131,8 @@ print.researchr_concept <- function(x, ...) {
 #' @param enabled Whether the question is fetched at all.
 #' @param digest_mode `"all"` or `"threshold"`. Under `"threshold"` the
 #'   curated feed and the email show only records scoring at least
-#'   `min_score`; everything is still stored and still visible in
-#'   `all.xml`.
+#'   `min_score`. Below-threshold records remain queryable through the API;
+#'   `all.xml` also omits the threshold but keeps the server's feed item limit.
 #' @param min_score Score cutoff used when `digest_mode = "threshold"`.
 #' @param delivery Character vector of delivery channels, e.g.
 #'   `c("file", "zotero")`.
@@ -139,7 +140,8 @@ print.researchr_concept <- function(x, ...) {
 #' @param email_cron Cron expression for this question's own email cadence.
 #' @param email_to Character vector of recipient addresses.
 #' @return Invisibly, the question as the server now holds it.
-#' @examplesIf nzchar(Sys.getenv("RESEARCHR_URL"))
+#' @examples
+#' \dontrun{
 #' rr_upsert_question(
 #'   rr_connect(), "glp1_mash", "GLP-1 receptor agonists in MASH",
 #'   concepts = list(
@@ -148,6 +150,7 @@ print.researchr_concept <- function(x, ...) {
 #'   sources = list(pubmed = TRUE, europepmc = TRUE),
 #'   email_enabled = TRUE, email_cron = "0 7 * * 1",
 #'   email_to = "me@example.org")
+#' }
 #' @export
 rr_upsert_question <- function(conn, question_id, label, concepts,
                                sources = list(),
@@ -185,17 +188,17 @@ rr_upsert_question <- function(conn, question_id, label, concepts,
   }
   body <- list(
     id = question_id, label = label,
-    concepts = lapply(concepts, function(cpt)
-      list(name = cpt$name, terms = as.list(cpt$terms), mesh = as.list(cpt$mesh))),
-    study_filter = as.list(study_filter),
+    concepts = unname(lapply(concepts, function(cpt)
+      list(name = cpt$name, terms = rr_array(cpt$terms), mesh = rr_array(cpt$mesh)))),
+    study_filter = rr_array(study_filter),
     from_days_back = as.integer(from_days_back),
     enabled = isTRUE(enabled),
     sources = rr_obj(sources),
     api_keys = rr_obj(api_keys),
-    delivery = as.list(delivery),
+    delivery = rr_array(delivery),
     email_enabled = isTRUE(email_enabled),
     email_cron = email_cron,
-    email_to = as.list(email_to),
+    email_to = rr_array(email_to),
     digest_mode = digest_mode,
     min_score = as.numeric(min_score))
   rr_post(conn, "questions", body)
@@ -211,8 +214,10 @@ rr_upsert_question <- function(conn, question_id, label, concepts,
 #' @param conn A [rr_connect()] connection.
 #' @param question_id Question id.
 #' @return Invisibly, `TRUE`.
-#' @examplesIf nzchar(Sys.getenv("RESEARCHR_URL"))
+#' @examples
+#' \dontrun{
 #' rr_delete_question(rr_connect(), "obsolete_question")
+#' }
 #' @export
 rr_delete_question <- function(conn, question_id) {
   rr_delete_path(conn, paste0("questions/", rr_path_id(question_id)))

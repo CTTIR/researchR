@@ -42,6 +42,10 @@ the \code{RESEARCHR_TOKEN} environment variable (in \verb{~/.Renviron}, so it ne
 reaches your scripts or your history). If the server has no \code{API_TOKEN}
 set, the whole surface answers 503 rather than serving unauthenticated —
 this package reports that as a \code{researchR_disabled} condition.
+
+A checked connection requires valid API v1 metadata. Malformed responses
+raise \code{researchR_protocol_error}. Request errors redact the bearer token
+and submitted source keys; do not include credentials in diagnostic reports.
 }
 
 \examples{

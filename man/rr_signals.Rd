@@ -32,7 +32,8 @@ rr_signals(
 }
 \value{
 A tibble of signals. \code{extra} is parsed from JSON into a list
-column of type-specific fields.
+column of type-specific fields. Malformed \code{extra} JSON raises
+\code{researchR_protocol_error}; absent or null metadata becomes an empty list.
 }
 \description{
 The signals track carries non-publication intelligence — grant awards,
