@@ -14,3 +14,4 @@
 ^pkgdown$
 ^tools/branding$
 ^docs$
+^\.git$
