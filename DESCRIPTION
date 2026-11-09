@@ -1,19 +1,21 @@
 Package: researchR
-Title: Client for a Self-Hosted 'researchD' Literature Surveillance Server
+Title: Client for the 'researchD' Literature Surveillance Server
 Version: 0.1.2
-Date: 2026-10-31
+Date: 2026-11-10
 Authors@R: person("Raban", "Heller",
  email = "raban.heller@uni-ulm.de",
  role = c("aut", "cre", "cph"),
  comment = c(ORCID = "0000-0001-8006-9742"))
-Description: An R client for 'researchD', a self-hosted literature and
+Description: An R client for 'researchD'
+ <https://github.com/CTTIR/researchD>, a self-hosted literature and
  signal surveillance server. Configures surveillance questions and reads
  stored literature records, signals, source health and service heartbeats
  through a token-authenticated REST API. Returns typed 'tibble' objects,
  including source provenance where supported by the server. Collection,
  classification, source access and delivery are managed by the server.
 License: MIT + file LICENSE
-URL: https://github.com/CTTIR/researchR
+URL: https://github.com/CTTIR/researchR,
+    https://cttir.github.io/researchR/
 BugReports: https://github.com/CTTIR/researchR/issues
 Encoding: UTF-8
 Language: en-GB
@@ -30,6 +32,6 @@ Suggests: knitr,
  testthat (>= 3.2.0),
  withr
 Config/testthat/edition: 3
-Config/roxygen2/version: 8.1.0
+Config/roxygen2/version: 8.1.1
 Config/Needs/website: CTTIR/themakR, pkgdown
 VignetteBuilder: knitr

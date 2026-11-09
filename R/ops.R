@@ -84,6 +84,8 @@ rr_signal_config <- function(conn, question_id) {
 #' @return Invisibly, the configuration as the server now holds it.
 #' @examples
 #' \dontrun{
+#' # Not run: needs a live researchD server with an API token, and it
+#' # changes the server's stored configuration.
 #' rr_set_signal_config(rr_connect(), "glp1_mash",
 #'                      min_confidence = "reported", instant_alerts = TRUE)
 #' }

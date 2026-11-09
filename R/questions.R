@@ -142,6 +142,8 @@ print.researchr_concept <- function(x, ...) {
 #' @return Invisibly, the question as the server now holds it.
 #' @examples
 #' \dontrun{
+#' # Not run: needs a live researchD server with an API token, and it
+#' # changes the server's stored configuration.
 #' rr_upsert_question(
 #'   rr_connect(), "glp1_mash", "GLP-1 receptor agonists in MASH",
 #'   concepts = list(
@@ -216,6 +218,8 @@ rr_upsert_question <- function(conn, question_id, label, concepts,
 #' @return Invisibly, `TRUE`.
 #' @examples
 #' \dontrun{
+#' # Not run: needs a live researchD server with an API token, and it
+#' # changes the server's stored configuration.
 #' rr_delete_question(rr_connect(), "obsolete_question")
 #' }
 #' @export

@@ -20,6 +20,8 @@ signal configuration go with it. This cannot be undone.
 }
 \examples{
 \dontrun{
+# Not run: needs a live researchD server with an API token, and it
+# changes the server's stored configuration.
 rr_delete_question(rr_connect(), "obsolete_question")
 }
 }

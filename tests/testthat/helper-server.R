@@ -7,6 +7,7 @@
 # Point both at a throwaway, seeded researchD instance to run the suite.
 
 skip_without_server <- function() {
+  testthat::skip_on_cran()
   testthat::skip_if_not(
     nzchar(Sys.getenv("RESEARCHR_TEST_URL")) &&
       nzchar(Sys.getenv("RESEARCHR_TEST_TOKEN")),

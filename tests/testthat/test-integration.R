@@ -20,6 +20,8 @@ test_that("a bad token is reported as unauthorised, not as a parse failure", {
 })
 
 test_that("an unreachable server is reported clearly", {
+  # Opens a local socket; keep it off CRAN machines with restricted networking.
+  skip_on_cran()
   expect_error(
     rr_connect("http://127.0.0.1:1", "tok", timeout = 2),
     class = "researchR_unreachable")

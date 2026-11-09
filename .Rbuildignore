@@ -15,3 +15,12 @@
 ^tools/branding$
 ^docs$
 ^\.git$
+^cran-comments\.md$
+^CRAN-SUBMISSION$
+^\.gitignore$
+^man/figures/.*\.pdf$
+^man/figures/icon-[0-9]+\.png$
+^man/figures/logo_noname\.
+^man/figures/logo-(light|mono|dark|symbol)\.
+^man/figures/logo-with-name-mono\.
+^man/figures/logo-with-name(-dark)?\.svg$
