@@ -1,3 +1,15 @@
+# researchR 0.2.0
+
+* Prepare the package for CRAN: shorter title, a link to the 'researchD'
+  server in the description, the documentation site in `URL`, and
+  `cran-comments.md`.
+* Explain in each example that is not run why it needs a live server.
+* Skip the integration tests and the local-socket test on CRAN.
+* Publish the pkgdown site, including the getting-started article, to
+  GitHub Pages from a dedicated workflow.
+* Exclude unused logo variants from the source package and add a spelling
+  word list.
+
 # researchR 0.1.2
 
 * Keep source API keys and bearer tokens out of displayed request errors,
