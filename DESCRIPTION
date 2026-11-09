@@ -1,6 +1,6 @@
 Package: researchR
 Title: Client for the 'researchD' Literature Surveillance Server
-Version: 0.1.2
+Version: 0.2.0
 Date: 2026-11-10
 Authors@R: person("Raban", "Heller",
  email = "raban.heller@uni-ulm.de",
