@@ -4,14 +4,17 @@
 \name{researchR-package}
 \alias{researchR}
 \alias{researchR-package}
-\title{researchR: Client for a Self-Hosted 'researchD' Literature Surveillance Server}
+\title{researchR: Client for the 'researchD' Literature Surveillance Server}
 \description{
-An R client for 'researchD', a self-hosted literature and signal surveillance server. Configures surveillance questions and reads stored literature records, signals, source health and service heartbeats through a token-authenticated REST API. Returns typed 'tibble' objects, including source provenance where supported by the server. Collection, classification, source access and delivery are managed by the server.
+\if{html}{\figure{logo.svg}{options: style='float: right' alt='logo' width='120'}}
+
+An R client for 'researchD' \url{https://github.com/CTTIR/researchD}, a self-hosted literature and signal surveillance server. Configures surveillance questions and reads stored literature records, signals, source health and service heartbeats through a token-authenticated REST API. Returns typed 'tibble' objects, including source provenance where supported by the server. Collection, classification, source access and delivery are managed by the server.
 }
 \seealso{
 Useful links:
 \itemize{
   \item \url{https://github.com/CTTIR/researchR}
+  \item \url{https://cttir.github.io/researchR/}
   \item Report bugs at \url{https://github.com/CTTIR/researchR/issues}
 }
 

@@ -78,6 +78,8 @@ key untouched; pass the literal \code{"__CLEAR__"} to delete one.
 
 \examples{
 \dontrun{
+# Not run: needs a live researchD server with an API token, and it
+# changes the server's stored configuration.
 rr_upsert_question(
   rr_connect(), "glp1_mash", "GLP-1 receptor agonists in MASH",
   concepts = list(

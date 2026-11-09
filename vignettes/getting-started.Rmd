@@ -116,7 +116,7 @@ server's collection history and vocabulary; inspect `rr_meta(live)` after a
 server upgrade. Empty results can mean that no records match or that collection
 has not yet completed. They are not evidence that the literature is absent.
 Empty responses preserve the same column types as populated results. Timestamp
-columns use UTC and honor offsets supplied by the server; record `provenance` and
+columns use UTC and honour offsets supplied by the server; record `provenance` and
 signal `extra` fields are list columns. A change detected while fetching pages
 raises `researchR_pagination_changed`; retry once collection finishes.
 Malformed API responses or structured metadata raise `researchR_protocol_error`
