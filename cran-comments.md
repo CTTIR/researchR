@@ -18,9 +18,10 @@ running server and an API token. For that reason:
 
 ## Test environments
 
-* local: macOS (aarch64), R 4.6.1, `R CMD check --as-cran --no-manual`
-  (no LaTeX installation is available locally, so the PDF manual was not
-  built there)
+* Local: macOS (aarch64-apple-darwin), R 4.6.1, 14 November 2026:
+  full `R CMD check --as-cran` on the built source tarball, including
+  PDF manual compilation with TinyTeX (TeX Live 2026) and HTML manual
+  validation. This supersedes the earlier local check environment.
 * GitHub Actions: macOS-latest (release), windows-latest (release),
   ubuntu-latest (devel, release, oldrel-1), with `--as-cran`
 
