@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: If you use this software, please cite it as below.
+type: software
+title: 'researchR: Client for the ''researchD'' Literature Surveillance Server'
+authors:
+- family-names: 'Heller'
+  given-names: 'Raban'
+  orcid: https://orcid.org/0000-0001-8006-9742
+  affiliation: Ulm University
+version: 0.2.0
+doi: 10.5281/zenodo.24426409
+repository-code: https://github.com/CTTIR/researchR
+url: https://cttir.github.io/researchR/
+license: MIT
+identifiers:
+- type: doi
+  value: 10.5281/zenodo.24426409
+  description: Zenodo DOI (reserved; resolves once the record is published)
