@@ -117,3 +117,14 @@ test_that("long error pages are shortened after credentials are redacted", {
   expect_match(conditionMessage(err), "[REDACTED]", fixed = TRUE)
   expect_identical(researchR:::rr_shorten("short"), "short")
 })
+
+test_that("authentication and missing resources map to their own conditions", {
+  response <- json_response(401L, "Invalid or missing API token")
+  local_mocked_bindings(req_perform = function(...) response, .package = "httr2")
+  conn <- rr_connect("https://feeds.example.org", "synthetic", check = FALSE)
+  expect_error(rr_meta(conn), "rejected the API token", class = "researchR_unauthorized")
+  response <- json_response(404L, "No such question")
+  expect_error(rr_records(conn, "missing"), "No such question", class = "researchR_not_found")
+  response <- httr2::response(status_code = 500L, body = raw())
+  expect_error(rr_meta(conn), "no detail returned", class = "researchR_http_error")
+})

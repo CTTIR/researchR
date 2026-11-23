@@ -188,3 +188,86 @@ test_that("functions report a non-connection before inspecting it", {
     expect_error(call(), "must be a connection")
   }
 })
+
+test_that("saving a question sends the server's documented body shape", {
+  sent <- NULL
+  local_mocked_bindings(
+    rr_post = function(conn, path, body) { sent <<- list(path = path, body = body); list(ok = TRUE) },
+    rr_get = function(conn, path, ...) list(list(id = "glp1", label = "GLP-1",
+      enabled = TRUE, concepts = list(list(name = "drug", terms = list("semaglutide"))))),
+    .package = "researchR")
+  out <- suppressMessages(rr_upsert_question(offline_conn(), "glp1", "GLP-1",
+    list(drug = rr_concept("drug", c(a = "semaglutide"), mesh = "Liraglutide")),
+    digest_mode = "threshold", min_score = 2L, from_days_back = 14))
+  expect_identical(sent$path, "questions")
+  body <- sent$body
+  expect_identical(body$concepts, list(list(name = "drug", terms = list("semaglutide"),
+                                            mesh = list("Liraglutide"))))
+  expect_identical(body$sources, structure(list(), names = character(0)))
+  expect_identical(body$api_keys, structure(list(), names = character(0)))
+  expect_identical(body$delivery, list("file"))
+  expect_identical(body$from_days_back, 14L)
+  expect_identical(body$min_score, 2)
+  expect_identical(body$digest_mode, "threshold")
+  expect_identical(jsonlite::toJSON(body$sources, auto_unbox = TRUE), structure("{}", class = "json"))
+  expect_identical(out$id, "glp1")
+})
+
+test_that("a missing question is a not-found condition listing known ids", {
+  local_mocked_bindings(rr_get = function(...) list(list(id = "a", label = "A"),
+                                                    list(id = "b", label = "B")),
+                        .package = "researchR")
+  expect_identical(rr_question(offline_conn(), "b")$label, "B")
+  expect_error(rr_question(offline_conn(), "c"), "Known ids", class = "researchR_not_found")
+})
+
+test_that("signal configuration updates keep every field that is not given", {
+  current <- list(sources = list(sec_edgar = TRUE), min_confidence = "authoritative",
+                  instant_alerts = TRUE, feed_categories = list(news = FALSE),
+                  scrape_targets = list(list(name = "", type = "rss",
+                                             url = "https://example.org/feed.xml")),
+                  api_key_present = list(epo_ops = TRUE))
+  sent <- NULL
+  local_mocked_bindings(
+    rr_get = function(conn, path, ...) current,
+    rr_post = function(conn, path, body) { sent <<- list(path = path, body = body); list(ok = TRUE) },
+    .package = "researchR")
+  suppressMessages(rr_set_signal_config(offline_conn(), "q one", min_confidence = "reported"))
+  expect_identical(sent$path, "signal_config/q%20one")
+  expect_identical(sent$body$min_confidence, "reported")
+  expect_identical(sent$body$sources, current$sources)
+  expect_true(sent$body$instant_alerts)
+  expect_identical(sent$body$feed_categories, current$feed_categories)
+  expect_identical(sent$body$scrape_targets, current$scrape_targets)
+  expect_identical(sent$body$api_keys, structure(list(), names = character(0)))
+  expect_null(sent$body$api_key_present)
+
+  suppressMessages(rr_set_signal_config(offline_conn(), "q", instant_alerts = FALSE,
+    sources = c(sec_edgar = FALSE, openfda = TRUE)))
+  expect_false(sent$body$instant_alerts)
+  expect_identical(sent$body$min_confidence, "authoritative")
+  expect_identical(sent$body$sources, list(sec_edgar = FALSE, openfda = TRUE))
+
+  current <- list(sources = structure(list(), names = character(0)))
+  suppressMessages(rr_set_signal_config(offline_conn(), "q"))
+  expect_identical(sent$body$min_confidence, "unverified")
+  expect_false(sent$body$instant_alerts)
+  expect_identical(sent$body$scrape_targets, list())
+})
+
+test_that("study types are checked against the server vocabulary", {
+  queried <- NULL
+  local_mocked_bindings(rr_get = function(conn, path, query = list()) {
+    if (path == "meta") return(list(api_version = 1L, study_types = list("rct", "other"),
+                                    signal_types = list("grant")))
+    queried <<- query
+    list(total = 0L, records = list())
+  }, .package = "researchR")
+  conn <- offline_conn()
+  expect_error(rr_records(conn, "q", study_type = "cohort"), "Unknown study type")
+  expect_equal(nrow(rr_records(conn, "q", study_type = "rct", since = as.Date("2026-01-01"))), 0L)
+  expect_identical(queried$study_type, "rct")
+  expect_identical(queried$since, "2026-01-01")
+  conn$meta <- list(study_types = "other")
+  expect_error(rr_records(conn, "q", study_type = "rct"), "Unknown study type")
+})
