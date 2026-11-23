@@ -13,6 +13,12 @@
 * `rr_feed_url()` rejects `"all"` and `"preprints"` as type filters, which
   the server routes to the unfiltered and preprint feeds, and documents that
   `all = TRUE` on the signals stream ignores the confidence floor.
+* `rr_upsert_question()` and `rr_set_signal_config()` check their vectors and
+  named lists (sources, keys, categories, recipients, scrape targets) before
+  contacting the server, and require a recipient when email delivery is on.
+  Invalid entries are named in the error without showing their values.
+* Every function that takes a connection reports a non-connection first,
+  instead of failing on an unrelated error.
 
 # researchR 0.1.2
 

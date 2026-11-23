@@ -131,6 +131,37 @@ rr_number <- function(x, name, lower = -Inf, integer = FALSE, infinite = FALSE) 
   invisible(x)
 }
 
+#' Validate a character vector field of a definition (it may be empty or NULL)
+#' @noRd
+rr_chr_vec <- function(x, name) {
+  if (is.null(x)) return(invisible(x))
+  if (!is.character(x) || anyNA(x) || any(!nzchar(trimws(x)))) {
+    cli::cli_abort("{.arg {name}} must be a character vector of non-empty, non-missing values.")
+  }
+  invisible(x)
+}
+
+#' Validate a map sent as a JSON object: unique names, one flag or string each
+#' @noRd
+rr_named_map <- function(x, name, value = c("flag", "string")) {
+  value <- match.arg(value)
+  if (is.null(x) || (is.list(x) && !length(x))) return(invisible(x))
+  nms <- names(x)
+  if (!(is.list(x) || is.atomic(x)) || is.null(nms) || anyNA(nms) ||
+      any(!nzchar(nms)) || anyDuplicated(nms)) {
+    cli::cli_abort("{.arg {name}} must be a list with unique, non-empty names.")
+  }
+  ok <- vapply(as.list(x), function(v) {
+    length(v) == 1L && !is.na(v) &&
+      if (value == "flag") is.logical(v) else is.character(v)
+  }, logical(1))
+  if (!all(ok)) {
+    # Name the offending entries only; the values may be API keys.
+    cli::cli_abort("Each entry of {.arg {name}} must be {if (value == 'flag') 'TRUE or FALSE' else 'one character string'}; check {.val {nms[!ok]}}.")
+  }
+  invisible(x)
+}
+
 #' Encode one route segment; slashes cannot be represented by these routes
 #' @noRd
 rr_path_id <- function(x, name = "question_id") {

@@ -136,3 +136,55 @@ test_that("path-based APIs encode legacy IDs without introducing route segments"
   expect_identical(received, "questions/old%20question%3F")
   expect_error(rr_signal_config(offline_conn(), "../q"), "slash")
 })
+
+test_that("question and signal definitions are checked before any request", {
+  local_mocked_bindings(
+    rr_get = function(...) cli::cli_abort("unexpected request"),
+    rr_post = function(...) cli::cli_abort("unexpected request"),
+    .package = "researchR")
+  conn <- offline_conn()
+  save <- function(...) rr_upsert_question(conn, "q", "Q", rr_concept("drug", "x"), ...)
+  expect_error(save(email_to = NA_character_), "email_to")
+  expect_error(save(study_filter = c("rct", "")), "study_filter")
+  expect_error(save(delivery = 1), "delivery")
+  expect_error(save(email_enabled = TRUE), "at least one recipient")
+  expect_error(save(sources = list(TRUE)), "unique, non-empty names")
+  expect_error(save(sources = list(pubmed = TRUE, pubmed = FALSE)), "unique")
+  expect_error(save(sources = list(pubmed = "yes")), "TRUE or FALSE")
+  err <- tryCatch(save(api_keys = list(pubmed = 12345)), error = identity)
+  expect_match(conditionMessage(err), "pubmed")
+  expect_false(grepl("12345", conditionMessage(err), fixed = TRUE))
+  expect_error(rr_set_signal_config(conn, "q", sources = list(sec_edgar = NA)),
+               "TRUE or FALSE")
+  expect_error(rr_set_signal_config(conn, "q", feed_categories = c(TRUE, FALSE)),
+               "feed_categories")
+  expect_error(rr_set_signal_config(conn, "q",
+                 scrape_targets = list(type = "rss", url = "https://example.org/feed")),
+               "list of target definitions")
+})
+
+test_that("valid optional definition forms are still accepted", {
+  sent <- NULL
+  local_mocked_bindings(
+    rr_post = function(conn, path, body) { sent <<- body; list(ok = TRUE) },
+    rr_question = function(conn, question_id) tibble::tibble(id = question_id),
+    .package = "researchR")
+  suppressMessages(rr_upsert_question(offline_conn(), "q", "Q", rr_concept("drug", "x"),
+    sources = c(pubmed = TRUE, biorxiv = FALSE), study_filter = NULL,
+    email_enabled = TRUE, email_to = c(first = "a@example.org")))
+  expect_identical(sent$sources, list(pubmed = TRUE, biorxiv = FALSE))
+  expect_identical(sent$study_filter, list())
+  expect_identical(sent$email_to, list("a@example.org"))
+})
+
+test_that("functions report a non-connection before inspecting it", {
+  for (call in list(
+    function() rr_records("not a connection", "q", study_type = "rct"),
+    function() rr_signals(list(), "q"),
+    function() rr_meta(NULL),
+    function() rr_upsert_question("x", "q", "Q", rr_concept("a", "b")),
+    function() rr_set_signal_config("x", "q"),
+    function() rr_delete_question("x", "q"))) {
+    expect_error(call(), "must be a connection")
+  }
+})

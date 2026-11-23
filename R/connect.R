@@ -123,6 +123,7 @@ rr_check_conn <- function(conn) {
 #' rr_meta(rr_connect())$study_types
 #' @export
 rr_meta <- function(conn) {
+  rr_check_conn(conn)
   out <- rr_get(conn, "meta")
   if (!is.list(out) || !is.numeric(out$api_version) ||
       length(out$api_version) != 1L || is.na(out$api_version) || out$api_version != 1) {

@@ -54,6 +54,7 @@ rr_records <- function(conn, question_id,
                        since = NULL, until = NULL, min_score = NULL,
                        emailed = NULL, apply_threshold = FALSE,
                        n_max = Inf, page_size = 200) {
+  rr_check_conn(conn)
   rr_string(question_id, "question_id")
   rr_flag(is_preprint, "is_preprint", optional = TRUE)
   rr_flag(emailed, "emailed", optional = TRUE)
@@ -116,6 +117,7 @@ SIGNAL_COLS <- c("dedup_key", "question_id", "signal_type", "source", "ext_id",
 rr_signals <- function(conn, question_id, signal_type = NULL,
                        min_confidence = NULL, since = NULL,
                        n_max = Inf, page_size = 200) {
+  rr_check_conn(conn)
   rr_string(question_id, "question_id")
   if (!is.null(signal_type)) rr_string(signal_type, "signal_type")
   if (!is.null(min_confidence)) {

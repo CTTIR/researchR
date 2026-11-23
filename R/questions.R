@@ -20,6 +20,7 @@ QUESTION_COLS <- c("id", "label", "enabled", "from_days_back", "digest_mode",
 #' rr_questions(rr_connect())
 #' @export
 rr_questions <- function(conn) {
+  rr_check_conn(conn)
   rows <- rr_get(conn, "questions")
   rr_check_rows(rows)
   out <- tibble::tibble(
@@ -51,6 +52,7 @@ rr_questions <- function(conn) {
 #' rr_question(rr_connect(), "glp1_mash")
 #' @export
 rr_question <- function(conn, question_id) {
+  rr_check_conn(conn)
   rr_string(question_id, "question_id")
   all <- rr_questions(conn)
   hit <- all[all$id == question_id, , drop = FALSE]
@@ -166,6 +168,7 @@ rr_upsert_question <- function(conn, question_id, label, concepts,
                                email_enabled = FALSE,
                                email_cron = "0 7 * * 1",
                                email_to = character(0)) {
+  rr_check_conn(conn)
   rr_string(question_id, "question_id")
   if (nchar(question_id) > 128L ||
       !grepl("^[A-Za-z0-9][A-Za-z0-9_-]*$", question_id)) {
@@ -179,6 +182,14 @@ rr_upsert_question <- function(conn, question_id, label, concepts,
   rr_flag(email_enabled, "email_enabled")
   rr_string(email_cron, "email_cron")
   digest_mode <- match.arg(digest_mode)
+  rr_chr_vec(study_filter, "study_filter")
+  rr_chr_vec(delivery, "delivery")
+  rr_chr_vec(email_to, "email_to")
+  if (isTRUE(email_enabled) && !length(email_to)) {
+    cli::cli_abort("Email delivery needs at least one recipient in {.arg email_to}.")
+  }
+  rr_named_map(sources, "sources", "flag")
+  rr_named_map(api_keys, "api_keys", "string")
   if (inherits(concepts, "researchr_concept")) concepts <- list(concepts)
   if (!length(concepts)) {
     cli::cli_abort("A question needs at least one concept; see {.fun rr_concept}.")
@@ -224,6 +235,7 @@ rr_upsert_question <- function(conn, question_id, label, concepts,
 #' }
 #' @export
 rr_delete_question <- function(conn, question_id) {
+  rr_check_conn(conn)
   rr_delete_path(conn, paste0("questions/", rr_path_id(question_id)))
   cli::cli_alert_success("Question {.val {question_id}} deleted.")
   invisible(TRUE)

@@ -21,6 +21,7 @@
 #' rr_source_health(rr_connect())
 #' @export
 rr_source_health <- function(conn, stale_days = 3) {
+  rr_check_conn(conn)
   rr_number(stale_days, "stale_days", lower = 1, integer = TRUE)
   res <- rr_get(conn, "source_health", list(stale_days = stale_days))
   rows <- res$sources
@@ -45,6 +46,7 @@ rr_source_health <- function(conn, stale_days = 3) {
 #' rr_heartbeat(rr_connect())
 #' @export
 rr_heartbeat <- function(conn) {
+  rr_check_conn(conn)
   res <- rr_get(conn, "heartbeat")
   out <- rr_rows_to_tbl(res$services,
                         c("service", "last_run", "last_ok", "last_detail",
@@ -63,6 +65,7 @@ rr_heartbeat <- function(conn) {
 #' rr_signal_config(rr_connect(), "glp1_mash")
 #' @export
 rr_signal_config <- function(conn, question_id) {
+  rr_check_conn(conn)
   rr_get(conn, paste0("signal_config/", rr_path_id(question_id)))
 }
 
@@ -97,6 +100,7 @@ rr_set_signal_config <- function(conn, question_id,
                                  feed_categories = NULL,
                                  scrape_targets = NULL,
                                  api_keys = NULL) {
+  rr_check_conn(conn)
   if (!is.null(min_confidence)) {
     rr_string(min_confidence, "min_confidence")
     if (!min_confidence %in% c("unverified", "reported", "authoritative")) {
@@ -104,6 +108,14 @@ rr_set_signal_config <- function(conn, question_id,
     }
   }
   rr_flag(instant_alerts, "instant_alerts", optional = TRUE)
+  rr_named_map(sources, "sources", "flag")
+  rr_named_map(feed_categories, "feed_categories", "flag")
+  rr_named_map(api_keys, "api_keys", "string")
+  if (!is.null(scrape_targets) && (!is.list(scrape_targets) ||
+      !all(vapply(scrape_targets, function(x) is.list(x) && length(names(x)) > 0L, logical(1))))) {
+    cli::cli_abort(c("{.arg scrape_targets} must be a list of target definitions.",
+                     i = "Wrap a single target: {.code list(list(type = \"rss\", url = ...))}."))
+  }
   current <- rr_signal_config(conn, question_id)
   body <- list(
     sources = rr_obj(sources %||% current$sources),
