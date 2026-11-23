@@ -73,7 +73,7 @@ test_that("encoded credentials are redacted without losing the error class", {
     loc = list("body"), msg = paste("Rejected source key", key))))
   failure <- NULL
   local_mocked_bindings(req_perform = function(...) {
-    if (!is.null(failure)) stop(failure)
+    if (!is.null(failure)) rlang::abort(failure)
     response
   }, .package = "httr2")
   conn <- rr_connect("https://feeds.example.org", token, check = FALSE)

@@ -71,7 +71,7 @@ test_that("server timestamps preserve clock times, fractions and UTC offsets", {
 })
 
 test_that("pagination rejects invalid limits before contacting the server", {
-  local_mocked_bindings(rr_get = function(...) stop("unexpected request"), .package = "researchR")
+  local_mocked_bindings(rr_get = function(...) cli::cli_abort("unexpected request"), .package = "researchR")
   conn <- offline_conn()
   for (value in list(-1, NA_real_, NaN, 1.5, c(1, 2), "10")) {
     expect_error(rr_records(conn, "q", n_max = value), "n_max")
@@ -110,7 +110,7 @@ test_that("pagination respects finite limits and detects inconsistent responses"
 })
 
 test_that("query filters reject ambiguous values locally", {
-  local_mocked_bindings(rr_get = function(...) stop("unexpected request"), .package = "researchR")
+  local_mocked_bindings(rr_get = function(...) cli::cli_abort("unexpected request"), .package = "researchR")
   conn <- offline_conn()
   expect_error(rr_records(conn, "q", is_preprint = NA), "is_preprint")
   expect_error(rr_records(conn, "q", since = "2026-02-30"), "valid date")
