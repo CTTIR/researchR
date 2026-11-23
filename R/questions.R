@@ -94,8 +94,14 @@ rr_concept <- function(name, terms = character(0), mesh = character(0)) {
 
 #' @noRd
 rr_as_concept <- function(x) {
-  rr_concept(x$name %||% "", unlist(x$terms) %||% character(0),
-             unlist(x$mesh) %||% character(0))
+  # Represent what the server stored without re-validating it: one concept
+  # saved by an older server must not make the whole question list unreadable.
+  chr <- function(v) as.character(unlist(v) %||% character(0))
+  name <- chr(x$name)
+  structure(list(name = if (length(name)) name[[1]] else "",
+                 terms = chr(x$terms),
+                 mesh = chr(x$mesh)),
+            class = c("researchr_concept", "list"))
 }
 
 #' @export

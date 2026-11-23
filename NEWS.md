@@ -21,6 +21,9 @@
   instead of failing on an unrelated error.
 * Error messages shorten long server or proxy error pages to 1000 characters,
   after credentials have been redacted.
+* `rr_questions()` reads stored concepts as they are, so one concept saved
+  with a blank name or term by an older server no longer makes the question
+  list unreadable.
 
 # researchR 0.1.2
 
