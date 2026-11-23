@@ -89,6 +89,16 @@ print.researchr_conn <- function(x, ...) {
   invisible(x)
 }
 
+#' @exportS3Method utils::str
+str.researchr_conn <- function(object, ...) {
+  # str() would otherwise list the bearer token in plain text.
+  shown <- unclass(object)
+  if (!is.null(shown$token)) shown$token <- "<hidden>"
+  cat("researchD connection (class 'researchr_conn'):\n")
+  utils::str(shown, ...)
+  invisible()
+}
+
 #' @noRd
 rr_check_conn <- function(conn) {
   if (!inherits(conn, "researchr_conn")) {

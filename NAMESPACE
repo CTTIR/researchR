@@ -2,6 +2,7 @@
 
 S3method(print,researchr_concept)
 S3method(print,researchr_conn)
+S3method(utils::str,researchr_conn)
 export(rr_concept)
 export(rr_connect)
 export(rr_delete_question)

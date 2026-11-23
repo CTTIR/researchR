@@ -28,3 +28,12 @@ test_that("connection validation catches malformed configuration without network
   expect_error(rr_connect("https://example.org", "synthetic", timeout = -1, check = FALSE), "timeout")
   expect_error(rr_connect("https://example.org", "synthetic", check = NA), "check")
 })
+
+test_that("str() of a connection hides the token but keeps the fields", {
+  conn <- rr_connect("https://feeds.example.org", "s3cret-token", check = FALSE)
+  out <- paste(utils::capture.output(utils::str(conn)), collapse = " ")
+  expect_false(grepl("s3cret-token", out, fixed = TRUE))
+  expect_match(out, "<hidden>", fixed = TRUE)
+  expect_match(out, "https://feeds.example.org", fixed = TRUE)
+  expect_identical(conn$token, "s3cret-token")
+})

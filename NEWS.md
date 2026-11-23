@@ -9,6 +9,7 @@
   GitHub Pages from a dedicated workflow.
 * Exclude unused logo variants from the source package and add a spelling
   word list.
+* `str()` on a connection no longer shows the API token.
 
 # researchR 0.1.2
 
