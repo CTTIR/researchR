@@ -19,6 +19,8 @@
   Invalid entries are named in the error without showing their values.
 * Every function that takes a connection reports a non-connection first,
   instead of failing on an unrelated error.
+* Error messages shorten long server or proxy error pages to 1000 characters,
+  after credentials have been redacted.
 
 # researchR 0.1.2
 

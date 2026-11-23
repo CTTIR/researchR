@@ -45,7 +45,8 @@ rr_perform <- function(req, conn, secrets = character()) {
   status <- httr2::resp_status(resp)
   if (status < 400) return(resp)
 
-  detail <- rr_redact(rr_error_detail(resp), secrets)
+  # Redact before shortening, so that a cut can never leave part of a secret.
+  detail <- rr_shorten(rr_redact(rr_error_detail(resp), secrets))
   if (status == 401) {
     cli::cli_abort(
       c("The researchD server rejected the API token (HTTP 401).",
@@ -95,6 +96,15 @@ rr_error_detail <- function(resp) {
   }
   out <- as.character(out)[1]
   if (is.na(out) || !nzchar(out)) "(no detail returned)" else out
+}
+
+#' Keep error details readable when a proxy returns a whole HTML page
+#' @noRd
+rr_shorten <- function(text, max = 1000L) {
+  text <- paste(text, collapse = " ")
+  extra <- nchar(text) - max
+  if (extra <= 0L) return(text)
+  paste0(substr(text, 1L, max), " ... [", extra, " more characters]")
 }
 
 #' Redact credentials echoed as plain, JSON-escaped or URL-encoded text

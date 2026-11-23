@@ -100,3 +100,20 @@ test_that("encoded credentials are redacted without losing the error class", {
   expect_false(any(vapply(c(encoded, form_encoded, encoded_token), function(secret)
     grepl(secret, conditionMessage(err), fixed = TRUE), logical(1))))
 })
+
+test_that("long error pages are shortened after credentials are redacted", {
+  token <- "synthetic-bearer-secret"
+  # The token straddles the cut: shortening first would leave its prefix.
+  page <- paste0(strrep("e", 990L), token, strrep(" proxy error", 400L))
+  response <- httr2::response(status_code = 502L, body = charToRaw(page))
+  local_mocked_bindings(req_perform = function(...) response, .package = "httr2")
+  conn <- rr_connect("https://feeds.example.org", token, check = FALSE)
+  err <- tryCatch(rr_meta(conn), error = identity)
+  expect_s3_class(err, "researchR_http_error")
+  expect_match(conditionMessage(err), "HTTP 502")
+  expect_match(conditionMessage(err), "more characters")
+  expect_lt(nchar(conditionMessage(err)), 1300L)
+  expect_false(grepl("synthetic-", conditionMessage(err), fixed = TRUE))
+  expect_match(conditionMessage(err), "[REDACTED]", fixed = TRUE)
+  expect_identical(researchR:::rr_shorten("short"), "short")
+})
