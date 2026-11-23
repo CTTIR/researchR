@@ -77,6 +77,8 @@ conn
 #> • server: https://feeds.example.org
 #> • token: set (64 characters, not shown)
 #> • api version: 1
+#> • study types: 9
+#> • signal types: 14
 ```
 
 For the first connection, use `rr_health(conn)` to check web liveness, then
@@ -108,7 +110,7 @@ rr_upsert_question(
 
 ```r
 rr_records(conn, "glp1_mash", study_type = "rct", since = Sys.Date() - 90)
-#> # A tibble: 23 × 18
+#> # A tibble: 23 × 19
 #>    dedup_key   source  doi        title              study_type is_preprint score
 #>    <chr>       <chr>   <chr>      <chr>              <chr>            <int> <dbl>
 #>  1 doi:10.10…  pubmed  10.1056/…  Semaglutide in …   rct                  0  4.81
@@ -190,7 +192,7 @@ rr_feed_url(conn, "glp1_mash", signals = TRUE)
 | `rr_questions()`, `rr_question()` | list and fetch questions |
 | `rr_concept()`, `rr_upsert_question()`, `rr_delete_question()` | define and edit them |
 | `rr_records()`, `rr_signals()` | pull the two tracks |
-| `rr_source_health()` | per-source fetch heartbeat |
+| `rr_source_health()`, `rr_heartbeat()` | per-source fetch health; engine and scheduler liveness |
 | `rr_signal_config()`, `rr_set_signal_config()` | signals-track settings |
 | `rr_feed_url()` | build feed URLs |
 
