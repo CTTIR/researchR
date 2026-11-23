@@ -10,6 +10,9 @@
 * Exclude unused logo variants from the source package and add a spelling
   word list.
 * `str()` on a connection no longer shows the API token.
+* `rr_feed_url()` rejects `"all"` and `"preprints"` as type filters, which
+  the server routes to the unfiltered and preprint feeds, and documents that
+  `all = TRUE` on the signals stream ignores the confidence floor.
 
 # researchR 0.1.2
 

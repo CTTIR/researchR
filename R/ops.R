@@ -127,7 +127,10 @@ rr_set_signal_config <- function(conn, question_id,
 #' @param question_id Question id.
 #' @param study_type Optional study type, or signal type when `signals = TRUE`,
 #'   for a filtered feed. URL construction does not query server metadata.
-#' @param all If `TRUE`, ignore the question's digest threshold. All feeds
+#'   The feed names `"all"` and `"preprints"` are not study types; use the
+#'   `all` or `preprints` argument for those feeds.
+#' @param all If `TRUE`, ignore the question's digest threshold (literature)
+#'   or its signal confidence floor (signals). All feeds
 #'   still contain at most the server's configured `FEED_LIMIT` recent items;
 #'   use [rr_records()] or [rr_signals()] for the retained collection.
 #' @param preprints If `TRUE`, the preprints-only literature feed. Cannot be
@@ -135,9 +138,12 @@ rr_set_signal_config <- function(conn, question_id,
 #' @param signals If `TRUE`, the signals stream rather than the literature one.
 #' @return A single URL string.
 #' @examples
-#' conn <- structure(list(base_url = "https://feeds.example.org"),
-#'                   class = "researchr_conn")
+#' # Building a feed URL is local: an offline connection is enough.
+#' conn <- rr_connect("https://feeds.example.org", token = "not-a-real-token",
+#'                    check = FALSE)
+#' rr_feed_url(conn, "glp1_mash")
 #' rr_feed_url(conn, "glp1_mash", study_type = "rct")
+#' rr_feed_url(conn, "glp1_mash", signals = TRUE)
 #' @export
 rr_feed_url <- function(conn, question_id, study_type = NULL,
                         all = FALSE, preprints = FALSE, signals = FALSE) {
@@ -146,7 +152,17 @@ rr_feed_url <- function(conn, question_id, study_type = NULL,
   rr_flag(preprints, "preprints")
   rr_flag(signals, "signals")
   question_id <- rr_path_id(question_id)
-  if (!is.null(study_type)) study_type <- rr_path_id(study_type, "study_type")
+  if (!is.null(study_type)) {
+    study_type <- rr_path_id(study_type, "study_type")
+    # These names are routed to the unfiltered and preprint feeds, so a type
+    # filter with that name would silently return a different stream.
+    reserved <- if (signals) "all" else c("all", "preprints")
+    if (study_type %in% reserved) {
+      cli::cli_abort(c(
+        "{.val {study_type}} is a feed name, not a {if (signals) 'signal' else 'study'} type.",
+        i = "Use {.code {study_type} = TRUE} for that feed."))
+    }
+  }
   if (signals && preprints) {
     cli::cli_abort("{.arg preprints} is only available for literature feeds; it cannot be combined with {.arg signals}.")
   }

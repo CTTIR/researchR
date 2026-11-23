@@ -19,9 +19,12 @@ rr_feed_url(
 \item{question_id}{Question id.}
 
 \item{study_type}{Optional study type, or signal type when \code{signals = TRUE},
-for a filtered feed. URL construction does not query server metadata.}
+for a filtered feed. URL construction does not query server metadata.
+The feed names \code{"all"} and \code{"preprints"} are not study types; use the
+\code{all} or \code{preprints} argument for those feeds.}
 
-\item{all}{If \code{TRUE}, ignore the question's digest threshold. All feeds
+\item{all}{If \code{TRUE}, ignore the question's digest threshold (literature)
+or its signal confidence floor (signals). All feeds
 still contain at most the server's configured \code{FEED_LIMIT} recent items;
 use \code{\link[=rr_records]{rr_records()}} or \code{\link[=rr_signals]{rr_signals()}} for the retained collection.}
 
@@ -38,7 +41,10 @@ The feeds are open — no token — so these URLs can go straight into Zotero
 (My Library, right-click, New Feed, From URL) or any reader.
 }
 \examples{
-conn <- structure(list(base_url = "https://feeds.example.org"),
-                  class = "researchr_conn")
+# Building a feed URL is local: an offline connection is enough.
+conn <- rr_connect("https://feeds.example.org", token = "not-a-real-token",
+                   check = FALSE)
+rr_feed_url(conn, "glp1_mash")
 rr_feed_url(conn, "glp1_mash", study_type = "rct")
+rr_feed_url(conn, "glp1_mash", signals = TRUE)
 }

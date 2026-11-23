@@ -30,3 +30,12 @@ test_that("feed URL variants are valid and encode path values", {
   expect_identical(rr_feed_url(conn, "q", signals = TRUE, study_type = "trial_result"),
                    "https://feeds.example.org/signals/q/trial_result.xml")
 })
+
+test_that("reserved feed names are not accepted as type filters", {
+  expect_error(rr_feed_url(conn, "q", study_type = "all"), "feed name")
+  expect_error(rr_feed_url(conn, "q", study_type = "preprints"), "preprints = TRUE")
+  expect_error(rr_feed_url(conn, "q", study_type = "all", signals = TRUE),
+               "not a signal type")
+  expect_identical(rr_feed_url(conn, "q", signals = TRUE, all = TRUE),
+                   "https://feeds.example.org/signals/q/all.xml")
+})
