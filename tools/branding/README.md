@@ -3,7 +3,7 @@
 CTTIR Coder Edition v5, supplied 25 October 2026. Editable native R geometry
 and `design_tokens.csv` define the artwork, topic colours and typography.
 Every identity has an artwork-only hex and a named composition with the exact
-package name inside the hex, each in light, dark and grayscale modes.
+package name inside the hex, each in light, dark and greyscale modes.
 
 Both master compositions are 1600 by 1848 pixels. Published standard exports
 are copied byte-for-byte from the approved v5 library in hexmakR. Their font

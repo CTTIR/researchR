@@ -30,7 +30,7 @@
 * Keep source API keys and bearer tokens out of displayed request errors,
   including validation responses from older servers that echo request input
   and JSON-escaped or URL-encoded credentials in diagnostics.
-* Serialize named concept lists, recipient/delivery vectors and scrape-target
+* Serialise named concept lists, recipient/delivery vectors and scrape-target
   lists as JSON arrays, preserving their order and values.
 * Reject malformed API metadata, missing row collections, invalid structured
   metadata and non-finite date bounds instead of reporting a successful
@@ -54,7 +54,7 @@
 
 # researchR 0.1.0
 
-* Standardize the named v5 package logo across README, documentation pages
+* Standardise the named v5 package logo across README, documentation pages
   and available application headers, with matching light and dark artwork.
 
 

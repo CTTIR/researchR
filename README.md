@@ -38,7 +38,7 @@ remotes::install_github("CTTIR/researchR")
 ```
 
 You also need access to a running `researchD` server, which is distributed
-separately under the [MIT license](https://github.com/CTTIR/researchD/blob/main/LICENSE).
+separately under the [MIT licence](https://github.com/CTTIR/researchD/blob/main/LICENSE).
 The client requires R 4.1 or later. Install from a local source checkout with
 `remotes::install_local("/path/to/researchR", build_vignettes = TRUE)`.
 
@@ -224,7 +224,7 @@ package checks and ordinary `example()` calls cannot execute them merely
 because `RESEARCHR_URL` is set. Run those examples explicitly only against the
 intended server after reviewing their question IDs and delivery settings.
 
-## License
+## Licence
 
 MIT © Raban Heller
 

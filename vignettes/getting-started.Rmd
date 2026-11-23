@@ -147,4 +147,4 @@ settings before exposing a surveillance question.
 Use `help(package = "researchR")` for function contracts and
 `citation("researchR")` for the installed version's citation. Report reproducible
 problems at <https://github.com/CTTIR/researchR/issues>, with synthetic examples
-and credentials removed. researchR is distributed under the MIT license.
+and credentials removed. researchR is distributed under the MIT licence.
