@@ -188,9 +188,9 @@ rr_upsert_question <- function(conn, question_id, label, concepts,
   rr_flag(email_enabled, "email_enabled")
   rr_string(email_cron, "email_cron")
   digest_mode <- match.arg(digest_mode)
-  rr_chr_vec(study_filter, "study_filter")
-  rr_chr_vec(delivery, "delivery")
-  rr_chr_vec(email_to, "email_to")
+  study_filter <- rr_chr_vec(study_filter, "study_filter")
+  delivery <- rr_chr_vec(delivery, "delivery")
+  email_to <- rr_chr_vec(email_to, "email_to")
   if (isTRUE(email_enabled) && !length(email_to)) {
     cli::cli_abort("Email delivery needs a recipient in {.arg email_to}.")
   }

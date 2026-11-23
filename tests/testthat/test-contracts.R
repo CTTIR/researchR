@@ -298,6 +298,52 @@ test_that("signal configuration updates keep every field that is not given", {
   expect_identical(sent$body$scrape_targets, list())
 })
 
+test_that("empty maps and lists of strings are still accepted", {
+  sent <- list()
+  local_mocked_bindings(
+    rr_post = function(conn, path, body) {
+      sent[[path]] <<- body
+      list(ok = TRUE)
+    },
+    rr_get = function(conn, path, ...) list(),
+    rr_question = function(conn, question_id) tibble::tibble(id = question_id),
+    .package = "researchR"
+  )
+  save <- function(...) {
+    suppressMessages(rr_upsert_question(
+      offline_conn(), "q", "Q", rr_concept("drug", "x"), ...
+    ))
+  }
+  keys <- character(0)
+  save(sources = logical(0), api_keys = keys,
+       study_filter = list("Review"), delivery = list("file", "zotero"),
+       email_enabled = TRUE, email_to = list(first = "a@example.org"))
+  body <- sent$questions
+  expect_identical(body$sources, empty_object)
+  expect_identical(body$api_keys, empty_object)
+  expect_identical(body$study_filter, list("Review"))
+  expect_identical(body$delivery, list("file", "zotero"))
+  expect_identical(body$email_to, list("a@example.org"))
+
+  save(study_filter = factor("Review"), delivery = list())
+  expect_identical(sent$questions$study_filter, list("Review"))
+  expect_identical(sent$questions$delivery, list())
+
+  suppressMessages(rr_set_signal_config(
+    offline_conn(), "q", sources = logical(0),
+    feed_categories = logical(0), api_keys = character(0)
+  ))
+  cfg <- sent[["signal_config/q"]]
+  expect_identical(cfg$sources, empty_object)
+  expect_identical(cfg$feed_categories, empty_object)
+  expect_identical(cfg$api_keys, empty_object)
+
+  expect_error(save(study_filter = list("Review", 1)), "study_filter")
+  expect_error(save(delivery = list(c("file", "zotero"))), "delivery")
+  expect_error(save(email_to = list(NA_character_)), "email_to")
+  expect_error(save(api_keys = c("unnamed")), "unique, non-empty names")
+})
+
 test_that("study types are checked against the server vocabulary", {
   queried <- NULL
   meta <- list(api_version = 1L, study_types = list("rct", "other"),

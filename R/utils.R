@@ -132,9 +132,17 @@ rr_number <- function(x, name, lower = -Inf, integer = FALSE, infinite = FALSE) 
 }
 
 #' Validate a character vector field of a definition (it may be empty or NULL)
+#'
+#' Lists of single strings and factors are accepted, as the server's own
+#' configuration reader does, and returned as a plain character vector.
 #' @noRd
 rr_chr_vec <- function(x, name) {
   if (is.null(x)) return(invisible(x))
+  one_string <- function(v) length(v) == 1L && (is.character(v) || is.factor(v))
+  if (is.list(x) && all(vapply(x, one_string, logical(1)))) {
+    x <- vapply(x, as.character, character(1), USE.NAMES = FALSE)
+  }
+  if (is.factor(x)) x <- as.character(x)
   if (!is.character(x) || anyNA(x) || any(!nzchar(trimws(x)))) {
     cli::cli_abort(paste(
       "{.arg {name}} must be a character vector",
@@ -148,7 +156,10 @@ rr_chr_vec <- function(x, name) {
 #' @noRd
 rr_named_map <- function(x, name, value = c("flag", "string")) {
   value <- match.arg(value)
-  if (is.null(x) || (is.list(x) && !length(x))) return(invisible(x))
+  # Any empty map, including character(0) or logical(0), is sent as `{}`.
+  if (is.null(x) || ((is.list(x) || is.atomic(x)) && !length(x))) {
+    return(invisible(x))
+  }
   nms <- names(x)
   named <- (is.list(x) || is.atomic(x)) && !is.null(nms) && !anyNA(nms) &&
     all(nzchar(nms)) && !anyDuplicated(nms)
