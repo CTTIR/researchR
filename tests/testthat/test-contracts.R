@@ -71,7 +71,10 @@ test_that("server timestamps preserve clock times, fractions and UTC offsets", {
 })
 
 test_that("pagination rejects invalid limits before contacting the server", {
-  local_mocked_bindings(rr_get = function(...) cli::cli_abort("unexpected request"), .package = "researchR")
+  local_mocked_bindings(
+    rr_get = function(...) cli::cli_abort("unexpected request"),
+    .package = "researchR"
+  )
   conn <- offline_conn()
   for (value in list(-1, NA_real_, NaN, 1.5, c(1, 2), "10")) {
     expect_error(rr_records(conn, "q", n_max = value), "n_max")
@@ -110,7 +113,10 @@ test_that("pagination respects finite limits and detects inconsistent responses"
 })
 
 test_that("query filters reject ambiguous values locally", {
-  local_mocked_bindings(rr_get = function(...) cli::cli_abort("unexpected request"), .package = "researchR")
+  local_mocked_bindings(
+    rr_get = function(...) cli::cli_abort("unexpected request"),
+    .package = "researchR"
+  )
   conn <- offline_conn()
   expect_error(rr_records(conn, "q", is_preprint = NA), "is_preprint")
   expect_error(rr_records(conn, "q", since = "2026-02-30"), "valid date")
@@ -141,115 +147,152 @@ test_that("question and signal definitions are checked before any request", {
   local_mocked_bindings(
     rr_get = function(...) cli::cli_abort("unexpected request"),
     rr_post = function(...) cli::cli_abort("unexpected request"),
-    .package = "researchR")
+    .package = "researchR"
+  )
   conn <- offline_conn()
-  save <- function(...) rr_upsert_question(conn, "q", "Q", rr_concept("drug", "x"), ...)
+  save <- function(...) {
+    rr_upsert_question(conn, "q", "Q", rr_concept("drug", "x"), ...)
+  }
   expect_error(save(email_to = NA_character_), "email_to")
   expect_error(save(study_filter = c("rct", "")), "study_filter")
   expect_error(save(delivery = 1), "delivery")
-  expect_error(save(email_enabled = TRUE), "at least one recipient")
+  expect_error(save(email_enabled = TRUE), "needs a recipient")
   expect_error(save(sources = list(TRUE)), "unique, non-empty names")
   expect_error(save(sources = list(pubmed = TRUE, pubmed = FALSE)), "unique")
   expect_error(save(sources = list(pubmed = "yes")), "TRUE or FALSE")
   err <- tryCatch(save(api_keys = list(pubmed = 12345)), error = identity)
   expect_match(conditionMessage(err), "pubmed")
   expect_false(grepl("12345", conditionMessage(err), fixed = TRUE))
-  expect_error(rr_set_signal_config(conn, "q", sources = list(sec_edgar = NA)),
-               "TRUE or FALSE")
-  expect_error(rr_set_signal_config(conn, "q", feed_categories = c(TRUE, FALSE)),
-               "feed_categories")
-  expect_error(rr_set_signal_config(conn, "q",
-                 scrape_targets = list(type = "rss", url = "https://example.org/feed")),
-               "list of target definitions")
+  expect_error(
+    rr_set_signal_config(conn, "q", sources = list(sec_edgar = NA)),
+    "TRUE or FALSE"
+  )
+  expect_error(
+    rr_set_signal_config(conn, "q", feed_categories = c(TRUE, FALSE)),
+    "feed_categories"
+  )
+  single_target <- list(type = "rss", url = "https://example.org/feed")
+  expect_error(
+    rr_set_signal_config(conn, "q", scrape_targets = single_target),
+    "list of target definitions"
+  )
 })
 
 test_that("valid optional definition forms are still accepted", {
   sent <- NULL
   local_mocked_bindings(
-    rr_post = function(conn, path, body) { sent <<- body; list(ok = TRUE) },
+    rr_post = function(conn, path, body) {
+      sent <<- body
+      list(ok = TRUE)
+    },
     rr_question = function(conn, question_id) tibble::tibble(id = question_id),
-    .package = "researchR")
-  suppressMessages(rr_upsert_question(offline_conn(), "q", "Q", rr_concept("drug", "x"),
+    .package = "researchR"
+  )
+  suppressMessages(rr_upsert_question(
+    offline_conn(), "q", "Q", rr_concept("drug", "x"),
     sources = c(pubmed = TRUE, biorxiv = FALSE), study_filter = NULL,
-    email_enabled = TRUE, email_to = c(first = "a@example.org")))
+    email_enabled = TRUE, email_to = c(first = "a@example.org")
+  ))
   expect_identical(sent$sources, list(pubmed = TRUE, biorxiv = FALSE))
   expect_identical(sent$study_filter, list())
   expect_identical(sent$email_to, list("a@example.org"))
 })
 
 test_that("functions report a non-connection before inspecting it", {
-  for (call in list(
+  calls <- list(
     function() rr_records("not a connection", "q", study_type = "rct"),
     function() rr_signals(list(), "q"),
     function() rr_meta(NULL),
     function() rr_upsert_question("x", "q", "Q", rr_concept("a", "b")),
     function() rr_set_signal_config("x", "q"),
-    function() rr_delete_question("x", "q"))) {
+    function() rr_delete_question("x", "q")
+  )
+  for (call in calls) {
     expect_error(call(), "must be a connection")
   }
 })
 
+empty_object <- structure(list(), names = character(0))
+
 test_that("saving a question sends the server's documented body shape", {
   sent <- NULL
+  stored <- list(list(
+    id = "glp1", label = "GLP-1", enabled = TRUE,
+    concepts = list(list(name = "drug", terms = list("semaglutide")))
+  ))
   local_mocked_bindings(
-    rr_post = function(conn, path, body) { sent <<- list(path = path, body = body); list(ok = TRUE) },
-    rr_get = function(conn, path, ...) list(list(id = "glp1", label = "GLP-1",
-      enabled = TRUE, concepts = list(list(name = "drug", terms = list("semaglutide"))))),
-    .package = "researchR")
-  out <- suppressMessages(rr_upsert_question(offline_conn(), "glp1", "GLP-1",
-    list(drug = rr_concept("drug", c(a = "semaglutide"), mesh = "Liraglutide")),
-    digest_mode = "threshold", min_score = 2L, from_days_back = 14))
+    rr_post = function(conn, path, body) {
+      sent <<- list(path = path, body = body)
+      list(ok = TRUE)
+    },
+    rr_get = function(conn, path, ...) stored,
+    .package = "researchR"
+  )
+  concept <- rr_concept("drug", c(a = "semaglutide"), mesh = "Liraglutide")
+  out <- suppressMessages(rr_upsert_question(
+    offline_conn(), "glp1", "GLP-1", list(drug = concept),
+    digest_mode = "threshold", min_score = 2L, from_days_back = 14
+  ))
   expect_identical(sent$path, "questions")
   body <- sent$body
-  expect_identical(body$concepts, list(list(name = "drug", terms = list("semaglutide"),
-                                            mesh = list("Liraglutide"))))
-  expect_identical(body$sources, structure(list(), names = character(0)))
-  expect_identical(body$api_keys, structure(list(), names = character(0)))
+  expect_identical(body$concepts, list(list(
+    name = "drug", terms = list("semaglutide"), mesh = list("Liraglutide")
+  )))
+  expect_identical(body$sources, empty_object)
+  expect_identical(body$api_keys, empty_object)
   expect_identical(body$delivery, list("file"))
   expect_identical(body$from_days_back, 14L)
   expect_identical(body$min_score, 2)
   expect_identical(body$digest_mode, "threshold")
-  expect_identical(jsonlite::toJSON(body$sources, auto_unbox = TRUE), structure("{}", class = "json"))
+  expect_identical(as.character(jsonlite::toJSON(body$sources)), "{}")
   expect_identical(out$id, "glp1")
 })
 
 test_that("a missing question is a not-found condition listing known ids", {
-  local_mocked_bindings(rr_get = function(...) list(list(id = "a", label = "A"),
-                                                    list(id = "b", label = "B")),
-                        .package = "researchR")
+  stored <- list(list(id = "a", label = "A"), list(id = "b", label = "B"))
+  local_mocked_bindings(rr_get = function(...) stored, .package = "researchR")
   expect_identical(rr_question(offline_conn(), "b")$label, "B")
-  expect_error(rr_question(offline_conn(), "c"), "Known ids", class = "researchR_not_found")
+  expect_error(rr_question(offline_conn(), "c"), "Known ids",
+               class = "researchR_not_found")
 })
 
 test_that("signal configuration updates keep every field that is not given", {
-  current <- list(sources = list(sec_edgar = TRUE), min_confidence = "authoritative",
-                  instant_alerts = TRUE, feed_categories = list(news = FALSE),
-                  scrape_targets = list(list(name = "", type = "rss",
-                                             url = "https://example.org/feed.xml")),
-                  api_key_present = list(epo_ops = TRUE))
+  feed <- list(name = "", type = "rss", url = "https://example.org/feed.xml")
+  current <- list(
+    sources = list(sec_edgar = TRUE), min_confidence = "authoritative",
+    instant_alerts = TRUE, feed_categories = list(news = FALSE),
+    scrape_targets = list(feed), api_key_present = list(epo_ops = TRUE)
+  )
   sent <- NULL
   local_mocked_bindings(
     rr_get = function(conn, path, ...) current,
-    rr_post = function(conn, path, body) { sent <<- list(path = path, body = body); list(ok = TRUE) },
-    .package = "researchR")
-  suppressMessages(rr_set_signal_config(offline_conn(), "q one", min_confidence = "reported"))
+    rr_post = function(conn, path, body) {
+      sent <<- list(path = path, body = body)
+      list(ok = TRUE)
+    },
+    .package = "researchR"
+  )
+  update <- function(...) {
+    suppressMessages(rr_set_signal_config(offline_conn(), ...))
+  }
+  update("q one", min_confidence = "reported")
   expect_identical(sent$path, "signal_config/q%20one")
   expect_identical(sent$body$min_confidence, "reported")
   expect_identical(sent$body$sources, current$sources)
   expect_true(sent$body$instant_alerts)
   expect_identical(sent$body$feed_categories, current$feed_categories)
   expect_identical(sent$body$scrape_targets, current$scrape_targets)
-  expect_identical(sent$body$api_keys, structure(list(), names = character(0)))
+  expect_identical(sent$body$api_keys, empty_object)
   expect_null(sent$body$api_key_present)
 
-  suppressMessages(rr_set_signal_config(offline_conn(), "q", instant_alerts = FALSE,
-    sources = c(sec_edgar = FALSE, openfda = TRUE)))
+  update("q", instant_alerts = FALSE,
+         sources = c(sec_edgar = FALSE, openfda = TRUE))
   expect_false(sent$body$instant_alerts)
   expect_identical(sent$body$min_confidence, "authoritative")
   expect_identical(sent$body$sources, list(sec_edgar = FALSE, openfda = TRUE))
 
-  current <- list(sources = structure(list(), names = character(0)))
-  suppressMessages(rr_set_signal_config(offline_conn(), "q"))
+  current <- list(sources = empty_object)
+  update("q")
   expect_identical(sent$body$min_confidence, "unverified")
   expect_false(sent$body$instant_alerts)
   expect_identical(sent$body$scrape_targets, list())
@@ -257,15 +300,19 @@ test_that("signal configuration updates keep every field that is not given", {
 
 test_that("study types are checked against the server vocabulary", {
   queried <- NULL
+  meta <- list(api_version = 1L, study_types = list("rct", "other"),
+               signal_types = list("grant"))
   local_mocked_bindings(rr_get = function(conn, path, query = list()) {
-    if (path == "meta") return(list(api_version = 1L, study_types = list("rct", "other"),
-                                    signal_types = list("grant")))
+    if (path == "meta") return(meta)
     queried <<- query
     list(total = 0L, records = list())
   }, .package = "researchR")
   conn <- offline_conn()
-  expect_error(rr_records(conn, "q", study_type = "cohort"), "Unknown study type")
-  expect_equal(nrow(rr_records(conn, "q", study_type = "rct", since = as.Date("2026-01-01"))), 0L)
+  expect_error(rr_records(conn, "q", study_type = "cohort"),
+               "Unknown study type")
+  out <- rr_records(conn, "q", study_type = "rct",
+                    since = as.Date("2026-01-01"))
+  expect_identical(nrow(out), 0L)
   expect_identical(queried$study_type, "rct")
   expect_identical(queried$since, "2026-01-01")
   conn$meta <- list(study_types = "other")

@@ -111,10 +111,14 @@ rr_set_signal_config <- function(conn, question_id,
   rr_named_map(sources, "sources", "flag")
   rr_named_map(feed_categories, "feed_categories", "flag")
   rr_named_map(api_keys, "api_keys", "string")
-  if (!is.null(scrape_targets) && (!is.list(scrape_targets) ||
-      !all(vapply(scrape_targets, function(x) is.list(x) && length(names(x)) > 0L, logical(1))))) {
-    cli::cli_abort(c("{.arg scrape_targets} must be a list of target definitions.",
-                     i = "Wrap a single target: {.code list(list(type = \"rss\", url = ...))}."))
+  is_target <- function(x) is.list(x) && length(names(x)) > 0L
+  targets_ok <- is.null(scrape_targets) || (is.list(scrape_targets) &&
+    all(vapply(scrape_targets, is_target, logical(1))))
+  if (!targets_ok) {
+    cli::cli_abort(c(
+      "{.arg scrape_targets} must be a list of target definitions.",
+      i = "Wrap a single target: {.code list(list(type = \"rss\", url = ...))}."
+    ))
   }
   current <- rr_signal_config(conn, question_id)
   body <- list(
@@ -172,7 +176,8 @@ rr_feed_url <- function(conn, question_id, study_type = NULL,
     if (study_type %in% reserved) {
       cli::cli_abort(c(
         "{.val {study_type}} is a feed name, not a {if (signals) 'signal' else 'study'} type.",
-        i = "Use {.code {study_type} = TRUE} for that feed."))
+        i = "Use {.code {study_type} = TRUE} for that feed."
+      ))
     }
   }
   if (signals && preprints) {

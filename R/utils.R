@@ -136,7 +136,10 @@ rr_number <- function(x, name, lower = -Inf, integer = FALSE, infinite = FALSE) 
 rr_chr_vec <- function(x, name) {
   if (is.null(x)) return(invisible(x))
   if (!is.character(x) || anyNA(x) || any(!nzchar(trimws(x)))) {
-    cli::cli_abort("{.arg {name}} must be a character vector of non-empty, non-missing values.")
+    cli::cli_abort(paste(
+      "{.arg {name}} must be a character vector",
+      "of non-empty, non-missing values."
+    ))
   }
   invisible(x)
 }
@@ -147,17 +150,20 @@ rr_named_map <- function(x, name, value = c("flag", "string")) {
   value <- match.arg(value)
   if (is.null(x) || (is.list(x) && !length(x))) return(invisible(x))
   nms <- names(x)
-  if (!(is.list(x) || is.atomic(x)) || is.null(nms) || anyNA(nms) ||
-      any(!nzchar(nms)) || anyDuplicated(nms)) {
+  named <- (is.list(x) || is.atomic(x)) && !is.null(nms) && !anyNA(nms) &&
+    all(nzchar(nms)) && !anyDuplicated(nms)
+  if (!named) {
     cli::cli_abort("{.arg {name}} must be a list with unique, non-empty names.")
   }
-  ok <- vapply(as.list(x), function(v) {
-    length(v) == 1L && !is.na(v) &&
-      if (value == "flag") is.logical(v) else is.character(v)
-  }, logical(1))
+  is_type <- if (value == "flag") is.logical else is.character
+  one_value <- function(v) length(v) == 1L && !is.na(v) && is_type(v)
+  ok <- vapply(as.list(x), one_value, logical(1))
   if (!all(ok)) {
     # Name the offending entries only; the values may be API keys.
-    cli::cli_abort("Each entry of {.arg {name}} must be {if (value == 'flag') 'TRUE or FALSE' else 'one character string'}; check {.val {nms[!ok]}}.")
+    cli::cli_abort(c(
+      "Each entry of {.arg {name}} must be {if (value == 'flag') 'TRUE or FALSE' else 'one character string'}.",
+      x = "Check {.val {nms[!ok]}}."
+    ))
   }
   invisible(x)
 }

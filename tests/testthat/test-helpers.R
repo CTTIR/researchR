@@ -57,11 +57,14 @@ test_that("concepts round-trip through the server's shape", {
 })
 
 test_that("stored concepts are read without re-validation", {
-  local_mocked_bindings(rr_get = function(...) list(list(
+  stored <- list(list(
     id = "legacy", label = "Legacy", enabled = TRUE,
-    concepts = list(list(name = "", terms = list("alpha", ""), mesh = list()),
-                    list(name = "drug", terms = list("beta"))))),
-    .package = "researchR")
+    concepts = list(
+      list(name = "", terms = list("alpha", ""), mesh = list()),
+      list(name = "drug", terms = list("beta"))
+    )
+  ))
+  local_mocked_bindings(rr_get = function(...) stored, .package = "researchR")
   conn <- rr_connect("https://feeds.example.org", "synthetic", check = FALSE)
   cpts <- rr_questions(conn)$concepts[[1]]
   expect_length(cpts, 2L)
@@ -73,7 +76,8 @@ test_that("stored concepts are read without re-validation", {
 })
 
 test_that("concepts print their terms and MeSH headings", {
-  out <- cli::cli_fmt(print(rr_concept("drug", "semaglutide", mesh = "Liver Cirrhosis")))
+  cpt <- rr_concept("drug", "semaglutide", mesh = "Liver Cirrhosis")
+  out <- cli::cli_fmt(print(cpt))
   expect_match(paste(out, collapse = " "), "semaglutide")
   expect_match(paste(out, collapse = " "), "MeSH")
 })

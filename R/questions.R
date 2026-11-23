@@ -192,7 +192,7 @@ rr_upsert_question <- function(conn, question_id, label, concepts,
   rr_chr_vec(delivery, "delivery")
   rr_chr_vec(email_to, "email_to")
   if (isTRUE(email_enabled) && !length(email_to)) {
-    cli::cli_abort("Email delivery needs at least one recipient in {.arg email_to}.")
+    cli::cli_abort("Email delivery needs a recipient in {.arg email_to}.")
   }
   rr_named_map(sources, "sources", "flag")
   rr_named_map(api_keys, "api_keys", "string")
