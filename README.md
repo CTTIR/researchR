@@ -222,9 +222,6 @@ package checks and ordinary `example()` calls cannot execute them merely
 because `RESEARCHR_URL` is set. Run those examples explicitly only against the
 intended server after reviewing their question IDs and delivery settings.
 
-The [maintenance record](docs/maintenance-2026-10-30.md) lists the audit findings,
-acceptance criteria, verification results and remaining release work.
-
 ## License
 
 MIT © Raban Heller
