@@ -24,7 +24,8 @@ environment variable. Never hard-code it in a script.}
 \item{check}{Whether to contact the server and verify the token now.}
 }
 \value{
-An object of class \code{researchr_conn}.
+An object of class \code{researchr_conn}. Printing it or calling
+\code{str()} on it shows whether a token is set, never the token itself.
 }
 \description{
 Creates the connection object every other function in this package takes as

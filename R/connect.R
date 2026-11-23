@@ -33,7 +33,8 @@
 #'   environment variable. Never hard-code it in a script.
 #' @param timeout Request timeout in seconds.
 #' @param check Whether to contact the server and verify the token now.
-#' @return An object of class `researchr_conn`.
+#' @return An object of class `researchr_conn`. Printing it or calling
+#'   `str()` on it shows whether a token is set, never the token itself.
 #' @examplesIf nzchar(Sys.getenv("RESEARCHR_URL"))
 #' conn <- rr_connect()
 #' rr_questions(conn)
