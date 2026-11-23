@@ -226,7 +226,7 @@ intended server after reviewing their question IDs and delivery settings.
 
 ## Licence
 
-MIT © Raban Heller
+MIT © R. Heller
 
 ## Documentation and support
 
