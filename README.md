@@ -22,12 +22,12 @@ drive the whole thing from R: define the surveillance questions, then pull
 what they found straight into tibbles.
 
 ```
-┌─────────────┐   HTTP + bearer token   ┌──────────────────────────────┐
-│  researchR  │ ──────────────────────► │  researchD                   │
-│  (this pkg) │ ◄────── tibbles ─────── │  R engine · FastAPI · cron   │
-└─────────────┘                         └──────────────────────────────┘
-                                              │
-                                    open RSS  ▼  →  Zotero, any reader
++-------------+   HTTP + bearer token   +------------------------------+
+|  researchR  | ----------------------> |  researchD                   |
+|  (this pkg) | <------ tibbles ------- |  R engine, FastAPI, cron     |
++-------------+                         +------------------------------+
+                                              |
+                                    open RSS  v  ->  Zotero, any reader
 ```
 
 ## Installation
